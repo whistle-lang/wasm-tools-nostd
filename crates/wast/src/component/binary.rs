@@ -1,6 +1,5 @@
 use crate::component::*;
 use crate::core;
-use crate::encode::Encode;
 use crate::token::{Id, Index, NameAnnotation};
 use alloc::fmt;
 use alloc::vec::Vec;

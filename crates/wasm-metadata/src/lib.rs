@@ -1,9 +1,17 @@
+#![no_std]
+extern crate alloc;
+
+use alloc::{
+    borrow::ToOwned,
+    boxed::Box,
+    fmt,
+    string::{String, ToString},
+    vec::Vec,
+};
 use anyhow::Result;
+use core::{iter, mem, ops::Range};
 use indexmap::{map::Entry, IndexMap};
 use serde::Serialize;
-use std::fmt;
-use std::mem;
-use std::ops::Range;
 use wasm_encoder::{ComponentSection as _, ComponentSectionId, Encode, Section};
 use wasmparser::{
     ComponentNameSectionReader, NameSectionReader, Parser, Payload::*, ProducersSectionReader,
@@ -145,7 +153,7 @@ impl Producers {
     }
 
     fn display(&self, f: &mut fmt::Formatter, indent: usize) -> fmt::Result {
-        let indent = std::iter::repeat(" ").take(indent).collect::<String>();
+        let indent = iter::repeat(" ").take(indent).collect::<String>();
         for (fieldname, fieldvalues) in self.0.iter() {
             writeln!(f, "{indent}{fieldname}:")?;
             for (name, version) in fieldvalues {
@@ -451,7 +459,7 @@ impl Metadata {
     }
 
     fn display(&self, f: &mut fmt::Formatter, indent: usize) -> fmt::Result {
-        let spaces = std::iter::repeat(" ").take(indent).collect::<String>();
+        let spaces = iter::repeat(" ").take(indent).collect::<String>();
         match self {
             Metadata::Module {
                 name, producers, ..
@@ -679,11 +687,15 @@ mod test {
     fn add_to_empty_module() {
         let wat = "(module)";
         let module = wat::parse_str(wat).unwrap();
+        let mut language = Vec::<String>::new();
+        language.push("bar".to_owned());
+        let mut processed_by = Vec::<(String, String)>::new();
+        processed_by.push(("baz".to_owned(), "1.0".to_owned()));
         let add = AddMetadata {
             name: Some("foo".to_owned()),
-            language: vec!["bar".to_owned()],
-            processed_by: vec![("baz".to_owned(), "1.0".to_owned())],
-            sdk: vec![],
+            language,
+            processed_by,
+            sdk: Vec::<(String, String)>::new(),
         };
         let module = add.to_wasm(&module).unwrap();
 
@@ -712,11 +724,15 @@ mod test {
     fn add_to_empty_component() {
         let wat = "(component)";
         let component = wat::parse_str(wat).unwrap();
+        let mut language = Vec::<String>::new();
+        language.push("bar".to_owned());
+        let mut processed_by = Vec::<(String, String)>::new();
+        processed_by.push(("baz".to_owned(), "1.0".to_owned()));
         let add = AddMetadata {
             name: Some("foo".to_owned()),
-            language: vec!["bar".to_owned()],
-            processed_by: vec![("baz".to_owned(), "1.0".to_owned())],
-            sdk: vec![],
+            language,
+            processed_by,
+            sdk: Vec::<(String, String)>::new(),
         };
         let component = add.to_wasm(&component).unwrap();
 
@@ -748,11 +764,15 @@ mod test {
         // Create the same old module, stick some metadata into it
         let wat = "(module)";
         let module = wat::parse_str(wat).unwrap();
+        let mut language = Vec::<String>::new();
+        language.push("bar".to_owned());
+        let mut processed_by = Vec::<(String, String)>::new();
+        processed_by.push(("baz".to_owned(), "1.0".to_owned()));
         let add = AddMetadata {
             name: Some("foo".to_owned()),
-            language: vec!["bar".to_owned()],
-            processed_by: vec![("baz".to_owned(), "1.0".to_owned())],
-            sdk: vec![],
+            language,
+            processed_by,
+            sdk: Vec::<(String, String)>::new(),
         };
         let module = add.to_wasm(&module).unwrap();
 
@@ -765,9 +785,11 @@ mod test {
         let component = component.finish();
 
         // Add some different metadata to the component.
+        let mut sdk = Vec::<(String, String)>::new();
+        sdk.push(("willa".to_owned(), "sparky".to_owned()));
         let add = AddMetadata {
             name: Some("gussie".to_owned()),
-            sdk: vec![("willa".to_owned(), "sparky".to_owned())],
+            sdk,
             ..Default::default()
         };
         let component = add.to_wasm(&component).unwrap();

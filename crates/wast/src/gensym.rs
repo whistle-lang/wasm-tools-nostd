@@ -1,4 +1,4 @@
-use std::thread_local;
+use std::{thread_local, cell::Cell};
 
 use crate::token::{Id, Span};
 

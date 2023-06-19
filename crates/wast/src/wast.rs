@@ -291,7 +291,7 @@ impl QuoteWat<'_> {
         };
         let mut ret = String::new();
         for (span, src) in source {
-            match str::from_utf8(src) {
+            match std::str::from_utf8(src) {
                 Ok(s) => ret.push_str(s),
                 Err(_) => {
                     return Err(Error::new(*span, "malformed UTF-8 encoding".to_string()));

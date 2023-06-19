@@ -45,7 +45,7 @@
 //!
 //! [`Parse`]: parser::Parse
 //! [`LexError`]: lexer::LexError
-#![no_std]
+// #![no_std]
 #![feature(error_in_core)]
 #![deny(missing_docs, rustdoc::broken_intra_doc_links)]
 extern crate alloc;
