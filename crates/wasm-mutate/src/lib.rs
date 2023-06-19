@@ -8,12 +8,14 @@
 //! fuzzing.
 
 #![cfg_attr(not(feature = "clap"), deny(missing_docs))]
-
+#![no_std]
+extern crate alloc;
 mod error;
 mod info;
 mod module;
 mod mutators;
 
+use alloc::{sync::Arc, vec::Vec, boxed::Box};
 pub use error::*;
 
 use crate::mutators::{
@@ -28,7 +30,6 @@ use crate::mutators::{
 use info::ModuleInfo;
 use mutators::Mutator;
 use rand::{rngs::SmallRng, Rng, SeedableRng};
-use std::sync::Arc;
 
 #[cfg(feature = "clap")]
 use clap::Parser;
@@ -81,6 +82,7 @@ for mutated_wasm in mutate.run(&input_wasm)? {
 ```
 "###
 )]
+
 #[cfg_attr(feature = "clap", derive(Parser))]
 #[derive(Clone)]
 pub struct WasmMutate<'wasm> {
@@ -329,10 +331,10 @@ pub(crate) fn validate(bytes: &[u8]) {
         Ok(_) => return,
         Err(e) => e,
     };
-    drop(std::fs::write("test.wasm", &bytes));
-    if let Ok(text) = wasmprinter::print_bytes(bytes) {
-        drop(std::fs::write("test.wat", &text));
-    }
+    // drop(std::fs::write("test.wasm", &bytes));
+    // if let Ok(text) = wasmprinter::print_bytes(bytes) {
+    //     drop(std::fs::write("test.wat", &text));
+    // }
 
     panic!("wasm failed to validate: {} (written to test.wasm)", err);
 }

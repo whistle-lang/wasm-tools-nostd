@@ -1,5 +1,5 @@
 use crate::{Error, Result};
-use std::convert::TryFrom;
+use alloc::vec::Vec;
 use wasm_encoder::{BlockType, HeapType, RefType, ValType};
 
 #[derive(Debug, Copy, Clone, PartialEq)]

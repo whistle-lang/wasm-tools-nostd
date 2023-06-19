@@ -1,10 +1,11 @@
+use core::ops::Range;
+
 use crate::{
     module::{PrimitiveTypeInfo, TypeInfo},
     Result,
 };
-use std::collections::HashSet;
-use std::convert::TryFrom;
-use std::ops::Range;
+use alloc::{string::String, vec::Vec};
+use hashbrown::HashSet;
 use wasm_encoder::{RawSection, SectionId};
 use wasmparser::{Chunk, Parser, Payload};
 

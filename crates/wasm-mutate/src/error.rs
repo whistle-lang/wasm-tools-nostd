@@ -1,3 +1,7 @@
+use core::result;
+
+use alloc::{boxed::Box, string::String};
+
 /// An error encountered when choosing or applying a Wasm mutation.
 #[derive(thiserror::Error, Debug)]
 #[error(transparent)]
@@ -81,4 +85,4 @@ pub enum ErrorKind {
 }
 
 /// A `Result` type that is either `Ok(T)` or `Err(wasm_mutate::Error)`.
-pub type Result<T, E = Error> = std::result::Result<T, E>;
+pub type Result<T, E = Error> = result::Result<T, E>;

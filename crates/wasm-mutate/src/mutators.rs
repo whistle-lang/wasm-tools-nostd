@@ -36,13 +36,14 @@ pub mod snip_function;
 pub mod start;
 
 mod translate;
+use core::any;
+
 pub use self::translate::Item;
 use self::translate::{DefaultTranslator, Translator};
 
-use std::borrow::Cow;
-
 use super::Result;
 use crate::WasmMutate;
+use alloc::{borrow::Cow, boxed::Box};
 use wasm_encoder::Module;
 use wasmparser::Operator;
 
@@ -99,7 +100,7 @@ pub trait Mutator {
     ///
     /// This is only used for debugging and logging purposes.
     fn name(&self) -> Cow<'static, str> {
-        return std::any::type_name::<Self>().into();
+        return any::type_name::<Self>().into();
     }
 }
 
