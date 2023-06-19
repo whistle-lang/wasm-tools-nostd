@@ -53,18 +53,21 @@
 #![deny(missing_docs, missing_debug_implementations)]
 // Needed for the `instructions!` macro in `src/code_builder.rs`.
 #![recursion_limit = "512"]
-
+#![no_std]
 mod component;
 mod config;
 mod core;
 
+use ::core::{cmp, fmt::Write};
+extern crate alloc;
 pub use crate::core::{
     ConfiguredModule, InstructionKind, InstructionKinds, MaybeInvalidModule, Module,
 };
+use alloc::{string::String, format};
 use arbitrary::{Result, Unstructured};
 pub use component::{Component, ConfiguredComponent};
 pub use config::{Config, DefaultConfig, SwarmConfig};
-use std::{collections::HashSet, fmt::Write, str};
+use hashbrown::HashSet;
 use wasmparser::names::{KebabStr, KebabString};
 
 /// Do something an arbitrary number of times.
@@ -99,8 +102,8 @@ pub(crate) fn arbitrary_loop<'a>(
 // Mirror what happens in `Arbitrary for String`, but do so with a clamped size.
 pub(crate) fn limited_str<'a>(max_size: usize, u: &mut Unstructured<'a>) -> Result<&'a str> {
     let size = u.arbitrary_len::<u8>()?;
-    let size = std::cmp::min(size, max_size);
-    match str::from_utf8(u.peek_bytes(size).unwrap()) {
+    let size = cmp::min(size, max_size);
+    match alloc::str::from_utf8(u.peek_bytes(size).unwrap()) {
         Ok(s) => {
             u.bytes(size).unwrap();
             Ok(s)
@@ -109,8 +112,8 @@ pub(crate) fn limited_str<'a>(max_size: usize, u: &mut Unstructured<'a>) -> Resu
             let i = e.valid_up_to();
             let valid = u.bytes(i).unwrap();
             let s = unsafe {
-                debug_assert!(str::from_utf8(valid).is_ok());
-                str::from_utf8_unchecked(valid)
+                debug_assert!(alloc::str::from_utf8(valid).is_ok());
+                alloc::str::from_utf8_unchecked(valid)
             };
             Ok(s)
         }
@@ -139,7 +142,7 @@ pub(crate) fn unique_kebab_string(
     names: &mut HashSet<KebabString>,
     u: &mut Unstructured,
 ) -> Result<KebabString> {
-    let size = std::cmp::min(u.arbitrary_len::<u8>()?, max_size);
+    let size = cmp::min(u.arbitrary_len::<u8>()?, max_size);
     let mut name = String::with_capacity(size);
     let mut require_alpha = true;
     for _ in 0..size {

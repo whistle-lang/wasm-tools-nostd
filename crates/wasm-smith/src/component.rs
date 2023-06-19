@@ -3,15 +3,12 @@
 
 #![allow(unused_variables, dead_code)] // TODO FITZGEN
 
+use core::marker;
+
 use crate::{arbitrary_loop, Config, DefaultConfig};
+use alloc::{collections::BTreeMap, rc::Rc, string::String, vec::Vec};
 use arbitrary::{Arbitrary, Result, Unstructured};
-use std::collections::BTreeMap;
-use std::convert::TryFrom;
-use std::{
-    collections::{HashMap, HashSet},
-    marker,
-    rc::Rc,
-};
+use hashbrown::{HashMap, HashSet};
 use wasm_encoder::{ComponentTypeRef, ComponentValType, PrimitiveValType, TypeBounds, ValType};
 use wasmparser::names::KebabString;
 
@@ -190,14 +187,14 @@ impl ComponentContext {
             num_imports: 0,
             import_names: HashSet::default(),
             import_urls: HashSet::default(),
-            funcs: vec![],
-            component_funcs: vec![],
-            scalar_component_funcs: vec![],
-            core_funcs: vec![],
-            components: vec![],
-            modules: vec![],
-            instances: vec![],
-            values: vec![],
+            funcs: Vec::new(),
+            component_funcs: Vec::new(),
+            scalar_component_funcs: Vec::new(),
+            core_funcs: Vec::new(),
+            components: Vec::new(),
+            modules: Vec::new(),
+            instances: Vec::new(),
+            values: Vec::new(),
         }
     }
 
@@ -359,7 +356,9 @@ impl Component {
     }
 
     fn empty() -> Self {
-        Component { sections: vec![] }
+        Component {
+            sections: Vec::new(),
+        }
     }
 }
 
@@ -382,11 +381,15 @@ impl Step {
 
 impl ComponentBuilder {
     fn new(config: Rc<dyn Config>) -> Self {
+        let mut types = Vec::new();
+        let mut components = Vec::new();
+        types.push(Default::default());
+        components.push(ComponentContext::empty());
         ComponentBuilder {
             config,
-            core_valtypes: vec![],
-            types: vec![Default::default()],
-            components: vec![ComponentContext::empty()],
+            core_valtypes: Vec::new(),
+            types,
+            components,
             fill_minimums: false,
             total_components: 0,
             total_modules: 0,
@@ -398,7 +401,8 @@ impl ComponentBuilder {
     fn build(&mut self, u: &mut Unstructured) -> Result<Component> {
         self.core_valtypes = crate::core::configured_valtypes(&*self.config);
 
-        let mut choices: Vec<fn(&mut ComponentBuilder, &mut Unstructured) -> Result<Step>> = vec![];
+        let mut choices: Vec<fn(&mut ComponentBuilder, &mut Unstructured) -> Result<Step>> =
+            Vec::new();
 
         loop {
             choices.clear();
@@ -517,7 +521,7 @@ impl ComponentBuilder {
     fn push_type(&mut self, ty: Rc<Type>) -> u32 {
         match self.ensure_section(
             |s| matches!(s, Section::Type(_)),
-            || Section::Type(TypeSection { types: vec![] }),
+            || Section::Type(TypeSection { types: Vec::new() }),
         ) {
             Section::Type(TypeSection { types }) => {
                 types.push(ty.clone());
@@ -530,7 +534,7 @@ impl ComponentBuilder {
     fn push_core_type(&mut self, ty: Rc<CoreType>) -> u32 {
         match self.ensure_section(
             |s| matches!(s, Section::CoreType(_)),
-            || Section::CoreType(CoreTypeSection { types: vec![] }),
+            || Section::CoreType(CoreTypeSection { types: Vec::new() }),
         ) {
             Section::CoreType(CoreTypeSection { types }) => {
                 types.push(ty.clone());
@@ -541,7 +545,7 @@ impl ComponentBuilder {
     }
 
     fn arbitrary_core_type_section(&mut self, u: &mut Unstructured) -> Result<Step> {
-        self.push_section(Section::CoreType(CoreTypeSection { types: vec![] }));
+        self.push_section(Section::CoreType(CoreTypeSection { types: Vec::new() }));
 
         let min = if self.fill_minimums {
             self.config
@@ -590,7 +594,7 @@ impl ComponentBuilder {
     }
 
     fn arbitrary_type_section(&mut self, u: &mut Unstructured) -> Result<Step> {
-        self.push_section(Section::Type(TypeSection { types: vec![] }));
+        self.push_section(Section::Type(TypeSection { types: Vec::new() }));
 
         let min = if self.fill_minimums {
             self.config
@@ -712,11 +716,11 @@ impl ComponentBuilder {
         u: &mut Unstructured,
         type_fuel: &mut u32,
     ) -> Result<Rc<ModuleType>> {
-        let mut defs = vec![];
+        let mut defs = Vec::new();
         let mut has_memory = false;
         let mut has_canonical_abi_realloc = false;
         let mut has_canonical_abi_free = false;
-        let mut types: Vec<Rc<crate::core::FuncType>> = vec![];
+        let mut types: Vec<Rc<crate::core::FuncType>> = Vec::new();
         let mut imports = HashMap::new();
         let mut exports = HashSet::new();
         let mut counts = EntityCounts::default();
@@ -741,10 +745,14 @@ impl ComponentBuilder {
             && types.len() < self.config.max_types()
             && u.ratio::<u8>(99, 100)?
         {
-            let realloc_ty = Rc::new(crate::core::FuncType {
-                params: vec![ValType::I32, ValType::I32, ValType::I32, ValType::I32],
-                results: vec![ValType::I32],
-            });
+            let mut params = Vec::new();
+            let mut results = Vec::new();
+            params.push(ValType::I32);
+            params.push(ValType::I32);
+            params.push(ValType::I32);
+            params.push(ValType::I32);
+            results.push(ValType::I32);
+            let realloc_ty = Rc::new(crate::core::FuncType { params, results });
             let ty_idx = u32::try_from(types.len()).unwrap();
             types.push(realloc_ty.clone());
             defs.push(ModuleTypeDef::TypeDef(crate::core::Type::Func(
@@ -764,9 +772,14 @@ impl ComponentBuilder {
             && types.len() < self.config.max_types()
             && u.ratio::<u8>(99, 100)?
         {
+            let mut params = Vec::new();
+            params.push(ValType::I32);
+            params.push(ValType::I32);
+            params.push(ValType::I32);
+
             let free_ty = Rc::new(crate::core::FuncType {
-                params: vec![ValType::I32, ValType::I32, ValType::I32],
-                results: vec![],
+                params,
+                results: Vec::new(),
             });
             let ty_idx = u32::try_from(types.len()).unwrap();
             types.push(free_ty.clone());
@@ -1022,7 +1035,7 @@ impl ComponentBuilder {
         u: &mut Unstructured,
         type_fuel: &mut u32,
     ) -> Result<Rc<ComponentType>> {
-        let mut defs = vec![];
+        let mut defs = Vec::new();
         let mut imports = HashSet::new();
         let mut import_urls = HashSet::new();
         let mut exports = HashSet::new();
@@ -1067,7 +1080,7 @@ impl ComponentBuilder {
         u: &mut Unstructured,
         type_fuel: &mut u32,
     ) -> Result<Rc<InstanceType>> {
-        let mut defs = vec![];
+        let mut defs = Vec::new();
         let mut exports = HashSet::new();
         let mut export_urls = HashSet::new();
 
@@ -1352,7 +1365,7 @@ impl ComponentBuilder {
         u: &mut Unstructured,
         type_fuel: &mut u32,
     ) -> Result<RecordType> {
-        let mut fields = vec![];
+        let mut fields = Vec::new();
         let mut field_names = HashSet::new();
         arbitrary_loop(u, 0, 100, |u| {
             *type_fuel = type_fuel.saturating_sub(1);
@@ -1374,7 +1387,7 @@ impl ComponentBuilder {
         u: &mut Unstructured,
         type_fuel: &mut u32,
     ) -> Result<VariantType> {
-        let mut cases = vec![];
+        let mut cases = Vec::new();
         let mut case_names = HashSet::new();
         arbitrary_loop(u, 1, 100, |u| {
             *type_fuel = type_fuel.saturating_sub(1);
@@ -1410,7 +1423,7 @@ impl ComponentBuilder {
     }
 
     fn arbitrary_tuple_type(&self, u: &mut Unstructured, type_fuel: &mut u32) -> Result<TupleType> {
-        let mut fields = vec![];
+        let mut fields = Vec::new();
         arbitrary_loop(u, 0, 100, |u| {
             *type_fuel = type_fuel.saturating_sub(1);
             if *type_fuel == 0 {
@@ -1424,7 +1437,7 @@ impl ComponentBuilder {
     }
 
     fn arbitrary_flags_type(&self, u: &mut Unstructured, type_fuel: &mut u32) -> Result<FlagsType> {
-        let mut fields = vec![];
+        let mut fields = Vec::new();
         let mut field_names = HashSet::new();
         arbitrary_loop(u, 0, 100, |u| {
             *type_fuel = type_fuel.saturating_sub(1);
@@ -1439,7 +1452,7 @@ impl ComponentBuilder {
     }
 
     fn arbitrary_enum_type(&self, u: &mut Unstructured, type_fuel: &mut u32) -> Result<EnumType> {
-        let mut variants = vec![];
+        let mut variants = Vec::new();
         let mut variant_names = HashSet::new();
         arbitrary_loop(u, 1, 100, |u| {
             *type_fuel = type_fuel.saturating_sub(1);
@@ -1454,7 +1467,7 @@ impl ComponentBuilder {
     }
 
     fn arbitrary_union_type(&self, u: &mut Unstructured, type_fuel: &mut u32) -> Result<UnionType> {
-        let mut variants = vec![];
+        let mut variants = Vec::new();
         arbitrary_loop(u, 1, 100, |u| {
             *type_fuel = type_fuel.saturating_sub(1);
             if *type_fuel == 0 {
@@ -1515,7 +1528,11 @@ impl ComponentBuilder {
     fn push_import(&mut self, name: KebabString, url: Option<String>, ty: ComponentTypeRef) {
         let nth = match self.ensure_section(
             |sec| matches!(sec, Section::Import(_)),
-            || Section::Import(ImportSection { imports: vec![] }),
+            || {
+                Section::Import(ImportSection {
+                    imports: Vec::new(),
+                })
+            },
         ) {
             Section::Import(sec) => {
                 sec.imports.push(Import { name, url, ty });
@@ -1591,7 +1608,7 @@ impl ComponentBuilder {
         let nth = match self.component_mut().component.sections.last_mut() {
             Some(Section::Canonical(CanonicalSection { funcs })) => funcs.len(),
             _ => {
-                self.push_section(Section::Canonical(CanonicalSection { funcs: vec![] }));
+                self.push_section(Section::Canonical(CanonicalSection { funcs: Vec::new() }));
                 0
             }
         };
@@ -1629,7 +1646,9 @@ impl ComponentBuilder {
     }
 
     fn arbitrary_import_section(&mut self, u: &mut Unstructured) -> Result<Step> {
-        self.push_section(Section::Import(ImportSection { imports: vec![] }));
+        self.push_section(Section::Import(ImportSection {
+            imports: Vec::new(),
+        }));
 
         let min = if self.fill_minimums {
             self.config
@@ -1667,7 +1686,7 @@ impl ComponentBuilder {
     }
 
     fn arbitrary_canonical_section(&mut self, u: &mut Unstructured) -> Result<Step> {
-        self.push_section(Section::Canonical(CanonicalSection { funcs: vec![] }));
+        self.push_section(Section::Canonical(CanonicalSection { funcs: Vec::new() }));
 
         let min = if self.fill_minimums {
             self.config
@@ -1713,7 +1732,7 @@ impl ComponentBuilder {
                     let func_index = *u.choose(&c.component().scalar_component_funcs)?;
                     Ok(Some(Func::CanonLower {
                         // Scalar component functions don't use any canonical options.
-                        options: vec![],
+                        options: Vec::new(),
                         func_index,
                     }))
                 });
@@ -1751,7 +1770,7 @@ impl ComponentBuilder {
                     Ok(Some(Func::CanonLift {
                         func_ty,
                         // Scalar functions don't use any canonical options.
-                        options: vec![],
+                        options: Vec::new(),
                         core_func_index,
                     }))
                 });
@@ -1874,7 +1893,7 @@ fn inverse_scalar_canonical_abi_for(
     };
 
     let mut names = HashSet::default();
-    let mut params = vec![];
+    let mut params = Vec::new();
 
     for core_ty in &core_func_ty.params {
         params.push((
@@ -1887,14 +1906,18 @@ fn inverse_scalar_canonical_abi_for(
 
     let results = match core_func_ty.results.len() {
         0 => Vec::new(),
-        1 => vec![(
-            if u.arbitrary()? {
-                Some(crate::unique_kebab_string(100, &mut names, u)?)
-            } else {
-                None
-            },
-            from_core_ty(u, core_func_ty.results[0])?,
-        )],
+        1 => {
+            let ret = Vec::new();
+            ret.push((
+                if u.arbitrary()? {
+                    Some(crate::unique_kebab_string(100, &mut names, u)?)
+                } else {
+                    None
+                },
+                from_core_ty(u, core_func_ty.results[0])?,
+            ));
+            ret
+        }
         _ => unimplemented!("non-scalar types are not supported yet"),
     };
 

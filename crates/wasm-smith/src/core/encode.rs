@@ -1,5 +1,4 @@
 use super::*;
-use std::convert::TryFrom;
 
 impl Module {
     /// Encode this Wasm module into bytes.
@@ -143,7 +142,7 @@ impl Module {
             return;
         }
         let mut elems = wasm_encoder::ElementSection::new();
-        let mut exps = vec![];
+        let mut exps = Vec::new();
         for el in &self.elems {
             let elements = match &el.items {
                 Elements::Expressions(es) => {

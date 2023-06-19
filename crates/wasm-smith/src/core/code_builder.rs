@@ -2,10 +2,8 @@ use super::{
     Elements, FuncType, GlobalInitExpr, Instruction, InstructionKind::*, InstructionKinds, Module,
     ValType,
 };
+use alloc::{vec::Vec, collections::{BTreeMap, BTreeSet}, rc::Rc, boxed::Box};
 use arbitrary::{Result, Unstructured};
-use std::collections::{BTreeMap, BTreeSet};
-use std::convert::TryFrom;
-use std::rc::Rc;
 use wasm_encoder::{BlockType, MemArg, RefType};
 mod no_traps;
 
@@ -751,7 +749,7 @@ impl CodeBuilderAllocations {
         self.controls.clear();
         self.controls.push(Control {
             kind: ControlKind::Block,
-            params: vec![],
+            params:  Vec::new(),
             results: func_ty.results.to_vec(),
             height: 0,
         });
@@ -818,10 +816,10 @@ impl CodeBuilder<'_> {
 
     #[inline(never)]
     fn arbitrary_block_type(&self, u: &mut Unstructured, module: &Module) -> Result<BlockType> {
-        let mut options: Vec<Box<dyn Fn(&mut Unstructured) -> Result<BlockType>>> = vec![
-            Box::new(|_| Ok(BlockType::Empty)),
-            Box::new(|u| Ok(BlockType::Result(module.arbitrary_valtype(u)?))),
-        ];
+        let mut options: Vec<Box<dyn Fn(&mut Unstructured) -> Result<BlockType>>> =  Vec::new();
+
+        options.push(Box::new(|_| Ok(BlockType::Empty)));
+        options.push(Box::new(|u| Ok(BlockType::Result(module.arbitrary_valtype(u)?))));
         if module.config.multi_value_enabled() {
             for (i, ty) in module.func_types() {
                 if self.types_on_stack(&ty.params) {
@@ -840,7 +838,7 @@ impl CodeBuilder<'_> {
     ) -> Result<Vec<Instruction>> {
         let max_instructions = module.config.max_instructions();
         let allowed_instructions = module.config.allowed_instructions();
-        let mut instructions = vec![];
+        let mut instructions = Vec::new();
 
         while !self.allocs.controls.is_empty() {
             let keep_going = instructions.len() < max_instructions

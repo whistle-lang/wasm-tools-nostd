@@ -1,8 +1,8 @@
 //! Configuring the shape of generated Wasm modules.
 
 use crate::InstructionKinds;
+use alloc::{fmt, borrow::Cow, vec::Vec};
 use arbitrary::{Arbitrary, Result, Unstructured};
-use std::borrow::Cow;
 
 /// Configuration for a generated module.
 ///
@@ -17,7 +17,7 @@ use std::borrow::Cow;
 /// Every trait method has a provided default implementation, so that you only
 /// need to override the methods for things you want to change away from the
 /// default.
-pub trait Config: 'static + std::fmt::Debug {
+pub trait Config: 'static + fmt::Debug {
     /// The minimum number of types to generate. Defaults to 0.
     fn min_types(&self) -> usize {
         0

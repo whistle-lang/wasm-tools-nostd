@@ -23,6 +23,7 @@ leb128 = { workspace = true }
 serde = { workspace = true, optional = true }
 wasm-encoder = { workspace = true }
 wasmparser = { workspace = true }
+hashbrown = { workspace = true }
 
 [dev-dependencies]
 criterion = { workspace = true }

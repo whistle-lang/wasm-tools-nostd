@@ -4,16 +4,14 @@ mod code_builder;
 pub(crate) mod encode;
 mod terminate;
 
+use core::{marker, result, str::FromStr, ops::Range};
+
 use crate::{arbitrary_loop, limited_string, unique_string, Config, DefaultConfig};
+use alloc::{rc::Rc, vec::Vec, string::{String, ToString}, fmt, boxed::Box, format};
 use arbitrary::{Arbitrary, Result, Unstructured};
 use code_builder::CodeBuilderAllocations;
 use flagset::{flags, FlagSet};
-use std::collections::HashSet;
-use std::convert::TryFrom;
-use std::marker;
-use std::ops::Range;
-use std::rc::Rc;
-use std::str::{self, FromStr};
+use hashbrown::HashSet;
 use wasm_encoder::{BlockType, ConstExpr, ExportKind, HeapType, RefType, ValType};
 pub(crate) use wasm_encoder::{GlobalType, MemoryType, TableType};
 
@@ -500,7 +498,7 @@ impl Module {
             let mut import_pair = unique_import_strings(1_000, u)?;
             if self.duplicate_imports_behavior == DuplicateImportsBehavior::Disallowed {
                 while import_strings.contains(&import_pair) {
-                    use std::fmt::Write;
+                    use fmt::Write;
                     write!(&mut import_pair.1, "{}", import_strings.len()).unwrap();
                 }
                 import_strings.insert(import_pair.clone());
@@ -862,7 +860,7 @@ impl Module {
 
     fn arbitrary_globals(&mut self, u: &mut Unstructured) -> Result<()> {
         let mut choices: Vec<Box<dyn Fn(&mut Unstructured, ValType) -> Result<GlobalInitExpr>>> =
-            vec![];
+            Vec::new();
         let num_imported_globals = self.globals.len();
 
         arbitrary_loop(
@@ -1025,7 +1023,7 @@ impl Module {
         let func_max = self.funcs.len() as u32;
 
         // Create a helper closure to choose an arbitrary offset.
-        let mut offset_global_choices = vec![];
+        let mut offset_global_choices = Vec::new();
         if !self.config.disallow_traps() {
             for (i, g) in self.globals[..self.globals.len() - self.defined_globals.len()]
                 .iter()
@@ -1141,7 +1139,7 @@ impl Module {
                 let items = if ty == RefType::EXTERNREF
                     || (self.config.reference_types_enabled() && u.arbitrary()?)
                 {
-                    let mut init = vec![];
+                    let mut init = Vec::new();
                     arbitrary_loop(u, self.config.min_elements(), max, |u| {
                         init.push(
                             if ty == RefType::EXTERNREF || func_max == 0 || u.arbitrary()? {
@@ -1154,7 +1152,7 @@ impl Module {
                     })?;
                     Elements::Expressions(init)
                 } else {
-                    let mut init = vec![];
+                    let mut init = Vec::new();
                     if func_max > 0 {
                         arbitrary_loop(u, self.config.min_elements(), max, |u| {
                             let func_idx = u.int_in_range(0..=func_max - 1)?;
@@ -1220,7 +1218,7 @@ impl Module {
         }
         let disallow_traps = self.config.disallow_traps();
         let mut choices32: Vec<Box<dyn Fn(&mut Unstructured, u64, usize) -> Result<Offset>>> =
-            vec![];
+            Vec::new();
         choices32.push(Box::new(|u, min_size, data_len| {
             let min = u32::try_from(min_size.saturating_mul(64 * 1024))
                 .unwrap_or(u32::MAX)
@@ -1231,7 +1229,7 @@ impl Module {
             ))
         }));
         let mut choices64: Vec<Box<dyn Fn(&mut Unstructured, u64, usize) -> Result<Offset>>> =
-            vec![];
+            Vec::new();
         choices64.push(Box::new(|u, min_size, data_len| {
             let min = min_size.saturating_mul(64 * 1024);
             let max = if disallow_traps { min } else { u64::MAX };
@@ -1330,8 +1328,12 @@ impl Module {
 
     fn params_results(&self, ty: &BlockType) -> (Vec<ValType>, Vec<ValType>) {
         match ty {
-            BlockType::Empty => (vec![], vec![]),
-            BlockType::Result(t) => (vec![], vec![*t]),
+            BlockType::Empty => (Vec::new(), Vec::new()),
+            BlockType::Result(t) => {
+                let mut hmm = Vec::new();
+                hmm.push(*t);
+                (Vec::new(), hmm)
+            },
             BlockType::FunctionType(ty) => {
                 let ty = self.func_type(*ty);
                 (ty.params.to_vec(), ty.results.to_vec())
@@ -1397,8 +1399,8 @@ pub(crate) fn arbitrary_func_type(
     valtypes: &[ValType],
     max_results: Option<usize>,
 ) -> Result<Rc<FuncType>> {
-    let mut params = vec![];
-    let mut results = vec![];
+    let mut params = Vec::new();
+    let mut results = Vec::new();
     arbitrary_loop(u, 0, 20, |u| {
         params.push(arbitrary_valtype(u, valtypes)?);
         Ok(true)
@@ -1739,7 +1741,7 @@ flags! {
 
 impl FromStr for InstructionKind {
     type Err = String;
-    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
+    fn from_str(s: &str) -> result::Result<Self, Self::Err> {
         match s.to_lowercase().as_str() {
             "numeric" => Ok(InstructionKind::Numeric),
             "vector" => Ok(InstructionKind::Vector),

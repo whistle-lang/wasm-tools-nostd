@@ -1,6 +1,5 @@
-use std::borrow::Cow;
-
 use super::*;
+use alloc::borrow::Cow;
 use wasm_encoder::{ComponentExportKind, ComponentOuterAliasKind, ExportKind};
 use wasmparser::names::KebabStr;
 
