@@ -24,12 +24,14 @@
 //!
 //! [`Lexer`]: crate::lexer::Lexer
 
+use alloc::borrow::Cow;
+use alloc::boxed::Box;
+use alloc::{str, fmt};
+use alloc::string::{String, ToString};
+use alloc::vec::Vec;
+
 use crate::token::Span;
 use crate::Error;
-use std::borrow::Cow;
-use std::char;
-use std::fmt;
-use std::str;
 
 /// A structure used to lex the s-expression syntax of WAT files.
 ///
@@ -1044,6 +1046,8 @@ fn is_confusing_unicode(ch: char) -> bool {
 
 #[cfg(test)]
 mod tests {
+    use alloc::format;
+
     use super::*;
 
     #[test]

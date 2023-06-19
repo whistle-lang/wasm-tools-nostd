@@ -1,3 +1,6 @@
+use alloc::string::{String, ToString};
+use alloc::vec::Vec;
+
 use crate::component::WastVal;
 use crate::core::{WastArgCore, WastRetCore};
 use crate::kw;
@@ -288,7 +291,7 @@ impl QuoteWat<'_> {
         };
         let mut ret = String::new();
         for (span, src) in source {
-            match std::str::from_utf8(src) {
+            match str::from_utf8(src) {
                 Ok(s) => ret.push_str(s),
                 Err(_) => {
                     return Err(Error::new(*span, "malformed UTF-8 encoding".to_string()));

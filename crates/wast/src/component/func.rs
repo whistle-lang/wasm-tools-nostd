@@ -1,3 +1,5 @@
+use alloc::vec::Vec;
+
 use crate::component::*;
 use crate::kw;
 use crate::parser::{Parse, Parser, Result};

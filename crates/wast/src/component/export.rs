@@ -1,3 +1,5 @@
+use alloc::vec::Vec;
+
 use super::{ComponentExternName, ItemRef, ItemSigNoName};
 use crate::kw;
 use crate::parser::{Cursor, Parse, Parser, Peek, Result};

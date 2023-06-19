@@ -64,13 +64,17 @@
 //! This module is heavily inspired by [`syn`](https://docs.rs/syn) so you can
 //! likely also draw inspiration from the excellent examples in the `syn` crate.
 
+use core::cell::{Cell, RefCell};
+
+use alloc::boxed::Box;
+use alloc::{format, fmt};
+use alloc::string::{String, ToString};
+use alloc::vec::Vec;
+use hashbrown::HashMap;
+
 use crate::lexer::{Float, Integer, Lexer, Token};
 use crate::token::Span;
 use crate::Error;
-use std::cell::{Cell, RefCell};
-use std::collections::HashMap;
-use std::fmt;
-use std::usize;
 
 /// The maximum recursive depth of parens to parse.
 ///
@@ -283,7 +287,7 @@ pub trait Peek {
 
 /// A convenience type definition for `Result` where the error is hardwired to
 /// [`Error`].
-pub type Result<T, E = Error> = std::result::Result<T, E>;
+pub type Result<T, E = Error> = core::result::Result<T, E>;
 
 /// A low-level buffer of tokens which represents a completely lexed file.
 ///

@@ -17,15 +17,21 @@ leb128 = { workspace = true }
 unicode-width = "0.1.9"
 memchr = "2.4.1"
 wasm-encoder = { workspace = true }
-
+hashbrown = { workspace = true }
+core2 = { workspace = true }
+rcore-thread = { git = "https://github.com/rcore-os/rcore-thread" }
 [dev-dependencies]
 anyhow = { workspace = true }
 rayon = { workspace = true }
 wasmparser = { path = "../wasmparser" }
 wat = { path = "../wat" }
+log = "0.4"
+spin = "0.9.8"
+deque = { git = "https://github.com/rcore-os/deque.git", branch = "no_std" }
 
 [features]
 default = ['wasm-module']
+userland = []
 
 # Includes default parsing support for `*.wat` and `*.wast` files (wasm
 # modules). This isn't always needed though if you're parsing just an

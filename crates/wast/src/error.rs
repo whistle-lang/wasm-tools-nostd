@@ -1,7 +1,10 @@
+use core::error;
+
 use crate::lexer::LexError;
 use crate::token::Span;
-use std::fmt;
-use std::path::{Path, PathBuf};
+use alloc::boxed::Box;
+use alloc::fmt;
+use alloc::string::{String, ToString};
 use unicode_width::UnicodeWidthStr;
 
 /// A convenience error type to tie together all the detailed errors produced by
@@ -166,7 +169,7 @@ impl fmt::Display for Error {
     }
 }
 
-impl std::error::Error for Error {}
+impl error::Error for Error {}
 
 impl Text {
     fn new(content: &str, span: Span) -> Text {

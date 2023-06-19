@@ -1,3 +1,7 @@
+use core::result;
+
+use alloc::vec::Vec;
+
 use crate::core::*;
 use crate::parser::{Parse, Parser, Result};
 use crate::token::{Id, Index, NameAnnotation, Span};
@@ -52,7 +56,7 @@ impl<'a> Module<'a> {
     ///
     /// If an error happens during resolution, such a name resolution error or
     /// items are found in the wrong order, then an error is returned.
-    pub fn resolve(&mut self) -> std::result::Result<Names<'a>, crate::Error> {
+    pub fn resolve(&mut self) -> result::Result<Names<'a>, crate::Error> {
         let names = match &mut self.kind {
             ModuleKind::Text(fields) => crate::core::resolve::resolve(fields)?,
             ModuleKind::Binary(_blobs) => Default::default(),
@@ -84,7 +88,7 @@ impl<'a> Module<'a> {
     ///
     /// This function can return an error for name resolution errors and other
     /// expansion-related errors.
-    pub fn encode(&mut self) -> std::result::Result<Vec<u8>, crate::Error> {
+    pub fn encode(&mut self) -> result::Result<Vec<u8>, crate::Error> {
         self.resolve()?;
         Ok(match &self.kind {
             ModuleKind::Text(fields) => crate::core::binary::encode(&self.id, &self.name, fields),

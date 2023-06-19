@@ -1,3 +1,5 @@
+use alloc::vec::Vec;
+
 use crate::annotation;
 use crate::parser::{Parse, Parser, Result};
 use crate::token::Span;

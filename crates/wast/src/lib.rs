@@ -45,8 +45,10 @@
 //!
 //! [`Parse`]: parser::Parse
 //! [`LexError`]: lexer::LexError
-
+#![no_std]
+#![feature(error_in_core)]
 #![deny(missing_docs, rustdoc::broken_intra_doc_links)]
+extern crate alloc;
 
 /// A macro to create a custom keyword parser.
 ///
@@ -303,6 +305,7 @@ macro_rules! custom_reserved {
 ///
 /// [register]: crate::parser::Parser::register_annotation
 /// [section]: https://github.com/WebAssembly/tool-conventions/blob/master/ProducersSection.md
+
 #[macro_export]
 macro_rules! annotation {
     ($name:ident) => {

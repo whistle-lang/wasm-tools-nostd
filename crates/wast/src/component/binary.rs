@@ -1,6 +1,9 @@
 use crate::component::*;
 use crate::core;
+use crate::encode::Encode;
 use crate::token::{Id, Index, NameAnnotation};
+use alloc::fmt;
+use alloc::vec::Vec;
 use wasm_encoder::{
     CanonicalFunctionSection, ComponentAliasSection, ComponentDefinedTypeEncoder,
     ComponentExportSection, ComponentImportSection, ComponentInstanceSection, ComponentNameSection,
@@ -663,7 +666,7 @@ impl From<&core::TagType<'_>> for wasm_encoder::TagType {
     }
 }
 
-impl<T: std::fmt::Debug> From<&core::TypeUse<'_, T>> for u32 {
+impl<T: fmt::Debug> From<&core::TypeUse<'_, T>> for u32 {
     fn from(u: &core::TypeUse<'_, T>) -> Self {
         match &u.index {
             Some(i) => (*i).into(),

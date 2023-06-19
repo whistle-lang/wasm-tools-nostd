@@ -1,3 +1,5 @@
+use alloc::vec::Vec;
+
 use crate::parser::{Cursor, Parse, Parser, Peek, Result};
 use crate::token::Index;
 

@@ -1,3 +1,7 @@
+use core::result;
+
+use alloc::vec::Vec;
+
 use crate::annotation;
 use crate::component::*;
 use crate::kw;
@@ -50,7 +54,7 @@ impl<'a> Component<'a> {
     ///
     /// If an error happens during resolution, such a name resolution error or
     /// items are found in the wrong order, then an error is returned.
-    pub fn resolve(&mut self) -> std::result::Result<(), crate::Error> {
+    pub fn resolve(&mut self) -> result::Result<(), crate::Error> {
         match &mut self.kind {
             ComponentKind::Text(fields) => {
                 crate::component::expand::expand(fields);
@@ -84,7 +88,7 @@ impl<'a> Component<'a> {
     ///
     /// This function can return an error for name resolution errors and other
     /// expansion-related errors.
-    pub fn encode(&mut self) -> std::result::Result<Vec<u8>, crate::Error> {
+    pub fn encode(&mut self) -> result::Result<Vec<u8>, crate::Error> {
         self.resolve()?;
         Ok(crate::component::binary::encode(self))
     }

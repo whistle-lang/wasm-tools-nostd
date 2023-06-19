@@ -2,12 +2,14 @@
 //! associated specifically with the wasm text format per se (useful in other
 //! contexts too perhaps).
 
+use core::hash::Hasher;
+
+use alloc::fmt;
+use alloc::string::{String, ToString};
+
 use crate::annotation;
 use crate::lexer::FloatVal;
 use crate::parser::{Cursor, Parse, Parser, Peek, Result};
-use std::fmt;
-use std::hash::{Hash, Hasher};
-use std::str;
 
 /// A position in the original source stream, used to render errors.
 #[derive(Copy, Clone, Debug, PartialOrd, Ord, PartialEq, Eq, Hash)]
@@ -87,7 +89,7 @@ impl<'a> Id<'a> {
     }
 }
 
-impl<'a> Hash for Id<'a> {
+impl<'a> core::hash::Hash for Id<'a> {
     fn hash<H: Hasher>(&self, hasher: &mut H) {
         self.name.hash(hasher);
         self.gen.hash(hasher);
@@ -207,7 +209,7 @@ impl PartialEq for Index<'_> {
 
 impl Eq for Index<'_> {}
 
-impl Hash for Index<'_> {
+impl core::hash::Hash for Index<'_> {
     fn hash<H: Hasher>(&self, hasher: &mut H) {
         match self {
             Index::Num(a, _) => {
@@ -415,7 +417,7 @@ macro_rules! float {
         fn $parse(val: &FloatVal<'_>) -> Option<$int> {
             // Compute a few well-known constants about the float representation
             // given the parameters to the macro here.
-            let width = std::mem::size_of::<$int>() * 8;
+            let width = core::mem::size_of::<$int>() * 8;
             let neg_offset = width - 1;
             let exp_offset = neg_offset - $exp_bits;
             let signif_bits = width - 1 - $exp_bits;

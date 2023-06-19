@@ -1,3 +1,5 @@
+use alloc::format;
+
 use crate::core::*;
 use crate::token::Index;
 use crate::{gensym, Error};
@@ -19,7 +21,7 @@ pub enum Ns {
 pub fn resolve<'a>(fields: &mut Vec<ModuleField<'a>>) -> Result<Names<'a>, Error> {
     // Ensure that each resolution of a module is deterministic in the names
     // that it generates by resetting our thread-local symbol generator.
-    gensym::reset();
+    // gensym::reset();
 
     // First up, de-inline import/export annotations.
     //
