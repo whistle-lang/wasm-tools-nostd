@@ -22,9 +22,12 @@
 // confusing it's recommended to read over that section to see how it maps to
 // the various methods here.
 
-use core::{mem, ops::{Deref, DerefMut}};
+use core::{
+    mem,
+    ops::{Deref, DerefMut},
+};
 
-use alloc::{vec::Vec, borrow::ToOwned};
+use alloc::vec::Vec;
 
 use crate::{
     limits::MAX_WASM_FUNCTION_LOCALS, BinaryReaderError, BlockType, BrTable, HeapType, Ieee32,
