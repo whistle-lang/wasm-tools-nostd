@@ -42,6 +42,8 @@ wasmtime = { version = "3.0.0", default-features = false, features = ['cranelift
 url = "2.0.0"
 pretty_assertions = "1.3.0"
 semver = "1.0.0"
+core2 = "0.4.0"
+hashbrown = "0.14.0"
 
 wasm-encoder = { version = "0.29.0", path = "crates/wasm-encoder"}
 wasm-compose = { version = "0.2.17", path = "crates/wasm-compose"}

@@ -1,6 +1,8 @@
+use core::fmt::Write;
+
 use super::{Printer, State};
+use alloc::{string::{String, ToString}, format};
 use anyhow::{bail, Result};
-use std::fmt::Write;
 use wasmparser::{BlockType, BrTable, MemArg, VisitOperator};
 
 pub struct PrintOperator<'a, 'b> {

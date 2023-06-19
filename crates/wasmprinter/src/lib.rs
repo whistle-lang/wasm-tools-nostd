@@ -5,14 +5,15 @@
 //! human-readable versions of a wasm binary. This can also be useful when
 //! developing wasm toolchain support in Rust for various purposes like testing
 //! and debugging and such.
-
+#![cfg_attr(not(feature = "std"), no_std)]
 #![deny(missing_docs)]
+extern crate alloc;
 
-use anyhow::{bail, Context, Result};
-use std::collections::{HashMap, HashSet};
-use std::fmt::{self, Write};
-use std::mem;
-use std::path::Path;
+use core::{mem, iter, fmt::Write};
+
+use alloc::{string::{String, ToString}, boxed::Box, vec::Vec, format, fmt};
+use anyhow::{bail, Result};
+use hashbrown::{HashMap, HashSet};
 use wasmparser::*;
 
 const MAX_LOCALS: u32 = 50000;
@@ -23,6 +24,7 @@ mod operator;
 
 /// Reads a WebAssembly `file` from the filesystem and then prints it into an
 /// in-memory `String`.
+#[cfg(feature = "std")]
 pub fn print_file(file: impl AsRef<Path>) -> Result<String> {
     let file = file.as_ref();
     let contents = std::fs::read(file).context(format!("failed to read `{}`", file.display()))?;
@@ -185,7 +187,7 @@ impl Printer {
         let mut offsets = self.line_offsets.iter().copied();
         let mut lines = self.lines.iter().copied().peekable();
 
-        Ok(std::iter::from_fn(move || {
+        Ok(iter::from_fn(move || {
             let offset = offsets.next()?;
             let i = lines.next()?;
             let j = lines.peek().copied().unwrap_or(end);
