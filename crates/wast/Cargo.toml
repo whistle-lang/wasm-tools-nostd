@@ -19,15 +19,12 @@ memchr = "2.4.1"
 wasm-encoder = { workspace = true }
 hashbrown = { workspace = true }
 core2 = { workspace = true }
-rcore-thread = { git = "https://github.com/rcore-os/rcore-thread" }
+
 [dev-dependencies]
 anyhow = { workspace = true }
 rayon = { workspace = true }
 wasmparser = { path = "../wasmparser" }
 wat = { path = "../wat" }
-log = "0.4"
-spin = "0.9.8"
-deque = { git = "https://github.com/rcore-os/deque.git", branch = "no_std" }
 
 [features]
 default = ['wasm-module']
