@@ -1,3 +1,5 @@
+use alloc::vec::Vec;
+
 use crate::sizealign::align_to;
 use crate::{
     Enum, Flags, FlagsRepr, Function, Int, Record, Resolve, Result_, Results, Tuple, Type,

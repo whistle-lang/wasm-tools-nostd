@@ -1,8 +1,7 @@
+use core::error;
+
+use alloc::fmt;
 use anyhow::{bail, Result};
-use std::char;
-use std::convert::TryFrom;
-use std::fmt;
-use std::str;
 use unicode_xid::UnicodeXID;
 
 use self::Token::*;
@@ -16,7 +15,7 @@ pub struct Tokenizer<'a> {
 
 #[derive(Clone)]
 struct CrlfFold<'a> {
-    chars: str::CharIndices<'a>,
+    chars: core::str::CharIndices<'a>,
 }
 
 /// A span, designating a range of bytes where a token is located.
@@ -553,7 +552,7 @@ impl Token {
     }
 }
 
-impl std::error::Error for Error {}
+impl error::Error for Error {}
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -630,6 +629,7 @@ fn test_validate_id() {
 
 #[test]
 fn test_tokenizer() {
+    use alloc::vec::Vec;
     fn collect(s: &str) -> Result<Vec<Token>> {
         let mut t = Tokenizer::new(s, 0)?;
         let mut tokens = Vec::new();
@@ -639,61 +639,113 @@ fn test_tokenizer() {
         Ok(tokens)
     }
 
-    assert_eq!(collect("").unwrap(), vec![]);
-    assert_eq!(collect("_").unwrap(), vec![Token::Underscore]);
-    assert_eq!(collect("apple").unwrap(), vec![Token::Id]);
-    assert_eq!(collect("apple-pear").unwrap(), vec![Token::Id]);
-    assert_eq!(collect("apple--pear").unwrap(), vec![Token::Id]);
-    assert_eq!(collect("apple-Pear").unwrap(), vec![Token::Id]);
-    assert_eq!(collect("apple-pear-grape").unwrap(), vec![Token::Id]);
-    assert_eq!(collect("apple pear").unwrap(), vec![Token::Id, Token::Id]);
-    assert_eq!(collect("_a_p_p_l_e_").unwrap(), vec![Token::Id]);
-    assert_eq!(collect("garçon").unwrap(), vec![Token::Id]);
-    assert_eq!(collect("hühnervögel").unwrap(), vec![Token::Id]);
-    assert_eq!(collect("москва").unwrap(), vec![Token::Id]);
-    assert_eq!(collect("東京").unwrap(), vec![Token::Id]);
-    assert_eq!(
-        collect("garçon-hühnervögel-москва-東京").unwrap(),
-        vec![Token::Id]
-    );
-    assert_eq!(collect("a0").unwrap(), vec![Token::Id]);
-    assert_eq!(collect("a").unwrap(), vec![Token::Id]);
-    assert_eq!(collect("%a").unwrap(), vec![Token::ExplicitId]);
-    assert_eq!(collect("%a-a").unwrap(), vec![Token::ExplicitId]);
-    assert_eq!(collect("%bool").unwrap(), vec![Token::ExplicitId]);
-    assert_eq!(collect("%").unwrap(), vec![Token::ExplicitId]);
-    assert_eq!(collect("APPLE").unwrap(), vec![Token::Id]);
-    assert_eq!(collect("APPLE-PEAR").unwrap(), vec![Token::Id]);
-    assert_eq!(collect("APPLE-PEAR-GRAPE").unwrap(), vec![Token::Id]);
-    assert_eq!(collect("apple-PEAR-grape").unwrap(), vec![Token::Id]);
-    assert_eq!(collect("APPLE-pear-GRAPE").unwrap(), vec![Token::Id]);
-    assert_eq!(collect("ENOENT").unwrap(), vec![Token::Id]);
-    assert_eq!(collect("is-XML").unwrap(), vec![Token::Id]);
+    assert_eq!(collect("").unwrap(), Vec::new());
+    let mut test2 = Vec::<Token>::new();
+    test2.push(Token::Underscore);
+    assert_eq!(collect("_").unwrap(), test2);
+    let mut test3 = Vec::<Token>::new();
+    test3.push(Token::Id);
+    assert_eq!(collect("apple").unwrap(), test3);
+    let mut test4 = Vec::<Token>::new();
+    test4.push(Token::Id);
+    assert_eq!(collect("apple-pear").unwrap(), test4);
+    let mut test5 = Vec::<Token>::new();
+    test5.push(Token::Id);
+    assert_eq!(collect("apple--pear").unwrap(), test5);
+    let mut test6 = Vec::<Token>::new();
+    test6.push(Token::Id);
+    assert_eq!(collect("apple-Pear").unwrap(), test6);
+    let mut test7 = Vec::<Token>::new();
+    test7.push(Token::Id);
+    assert_eq!(collect("apple-pear-grape").unwrap(), test7);
+    let mut test8 = Vec::<Token>::new();
+    test8.push(Token::Id);
+    test8.push(Token::Id);
+    assert_eq!(collect("apple pear").unwrap(), test8);
+    let mut test9 = Vec::<Token>::new();
+    test9.push(Token::Id);
+    assert_eq!(collect("_a_p_p_l_e_").unwrap(), test9);
+    let mut test10 = Vec::<Token>::new();
+    test10.push(Token::Id);
+    assert_eq!(collect("garçon").unwrap(), test10);
+    let mut test11 = Vec::<Token>::new();
+    test11.push(Token::Id);
+    assert_eq!(collect("hühnervögel").unwrap(), test11);
+    let mut test12 = Vec::<Token>::new();
+    test12.push(Token::Id);
+    assert_eq!(collect("москва").unwrap(), test12);
+    let mut test13 = Vec::<Token>::new();
+    test13.push(Token::Id);
+    assert_eq!(collect("東京").unwrap(), test13);
+    let mut test14 = Vec::<Token>::new();
+    test14.push(Token::Id);
+    assert_eq!(collect("garçon-hühnervögel-москва-東京").unwrap(), test14);
+    let mut test15 = Vec::<Token>::new();
+    test15.push(Token::Id);
+    assert_eq!(collect("a0").unwrap(), test15);
+    let mut test16 = Vec::<Token>::new();
+    test16.push(Token::Id);
+    assert_eq!(collect("a").unwrap(), test16);
+    let mut test17 = Vec::<Token>::new();
+    test17.push(Token::ExplicitId);
+    assert_eq!(collect("%a").unwrap(), test17);
+    let mut test18 = Vec::<Token>::new();
+    test18.push(Token::ExplicitId);
+    assert_eq!(collect("%a-a").unwrap(), test18);
+    let mut test19 = Vec::<Token>::new();
+    test19.push(Token::ExplicitId);
+    assert_eq!(collect("%bool").unwrap(), test19);
+    let mut test20 = Vec::<Token>::new();
+    test20.push(Token::ExplicitId);
+    assert_eq!(collect("%").unwrap(), test20);
+    let mut test21 = Vec::<Token>::new();
+    test21.push(Token::Id);
+    assert_eq!(collect("APPLE").unwrap(), test21);
+    let mut test22 = Vec::<Token>::new();
+    test22.push(Token::Id);
+    assert_eq!(collect("APPLE-PEAR").unwrap(), test22);
+    let mut test23 = Vec::<Token>::new();
+    test23.push(Token::Id);
+    assert_eq!(collect("APPLE-PEAR-GRAPE").unwrap(), test23);
+    let mut test24 = Vec::<Token>::new();
+    test24.push(Token::Id);
+    assert_eq!(collect("apple-PEAR-grape").unwrap(), test24);
+    let mut test25 = Vec::<Token>::new();
+    test25.push(Token::Id);
+    assert_eq!(collect("APPLE-pear-GRAPE").unwrap(), test25);
+    let mut test26 = Vec::<Token>::new();
+    test26.push(Token::Id);
+    assert_eq!(collect("ENOENT").unwrap(), test26);
+    let mut test27 = Vec::<Token>::new();
+    test27.push(Token::Id);
+    assert_eq!(collect("is-XML").unwrap(), test27);
+    let mut test28 = Vec::<Token>::new();
+    test28.push(Token::Func);
+    assert_eq!(collect("func").unwrap(), test28);
 
-    assert_eq!(collect("func").unwrap(), vec![Token::Func]);
-    assert_eq!(
-        collect("a: func()").unwrap(),
-        vec![
-            Token::Id,
-            Token::Colon,
-            Token::Func,
-            Token::LeftParen,
-            Token::RightParen
-        ]
-    );
+    let mut test29 = Vec::<Token>::new();
+    test29.push(Token::Id);
+    test29.push(Token::Colon);
+    test29.push(Token::Func);
+    test29.push(Token::LeftParen);
+    test29.push(Token::RightParen);
+    assert_eq!(collect("a: func()").unwrap(), test29);
 
-    assert_eq!(collect("resource").unwrap(), vec![Token::Resource]);
+    let mut test30 = Vec::<Token>::new();
+    test30.push(Token::Resource);
+    assert_eq!(collect("resource").unwrap(), test30);
 
-    assert_eq!(collect("shared").unwrap(), vec![Token::Shared]);
-    assert_eq!(
-        collect("shared<some-id>").unwrap(),
-        vec![
-            Token::Shared,
-            Token::LessThan,
-            Token::Id,
-            Token::GreaterThan
-        ]
-    );
+    let mut test30 = Vec::<Token>::new();
+    test30.push(Token::Shared);
+    assert_eq!(collect("shared").unwrap(), test30);
+
+    let mut test31 = Vec::<Token>::new();
+    test31.push(Token::Shared);
+    test31.push(Token::LessThan);
+    test31.push(Token::Id);
+    test31.push(Token::GreaterThan);
+
+    assert_eq!(collect("shared<some-id>").unwrap(), test31);
 
     assert!(collect("\u{149}").is_err(), "strongly discouraged");
     assert!(collect("\u{673}").is_err(), "strongly discouraged");

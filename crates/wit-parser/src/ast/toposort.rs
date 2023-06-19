@@ -1,9 +1,14 @@
+use core::{mem, error};
+
 use crate::ast::{Id, Span};
+use alloc::{
+    collections::BinaryHeap,
+    fmt,
+    string::{String, ToString},
+    vec::Vec,
+};
 use anyhow::Result;
 use indexmap::IndexMap;
-use std::collections::BinaryHeap;
-use std::fmt;
-use std::mem;
 
 #[derive(Default, Clone)]
 struct State {
@@ -45,7 +50,10 @@ pub fn toposort<'a>(
 ) -> Result<Vec<&'a str>, Error> {
     // Initialize a `State` per-node with the number of outbound edges and
     // additionally filling out the `reverse_deps` array.
-    let mut states = vec![State::default(); deps.len()];
+
+    let mut states = Vec::new();
+    states.resize_with(deps.len(), State::default);
+
     for (i, (_, edges)) in deps.iter().enumerate() {
         states[i].outbound_remaining = edges.len();
         for edge in edges {
@@ -141,7 +149,7 @@ impl fmt::Display for Error {
     }
 }
 
-impl std::error::Error for Error {}
+impl error::Error for Error {}
 
 #[cfg(test)]
 mod tests {
@@ -160,45 +168,62 @@ mod tests {
         assert_eq!(toposort("", &IndexMap::new()).unwrap(), empty);
 
         let mut nonexistent = IndexMap::new();
-        nonexistent.insert("a", vec![id("b")]);
+        let mut test1 = Vec::new();
+        test1.push(id("b"));
+        nonexistent.insert("a", test1);
         assert!(matches!(
             toposort("", &nonexistent),
             Err(Error::NonexistentDep { .. })
         ));
 
         let mut one = IndexMap::new();
-        one.insert("a", vec![]);
+        one.insert("a", Vec::new());
         assert_eq!(toposort("", &one).unwrap(), ["a"]);
 
         let mut two = IndexMap::new();
-        two.insert("a", vec![]);
-        two.insert("b", vec![id("a")]);
+        two.insert("a", Vec::new());
+        let mut test2 = Vec::new();
+        test2.push(id("a")); 
+        two.insert("b", test2);
         assert_eq!(toposort("", &two).unwrap(), ["a", "b"]);
 
         let mut two = IndexMap::new();
-        two.insert("a", vec![id("b")]);
-        two.insert("b", vec![]);
+        let mut test3 = Vec::new();
+        test3.push(id("b")); 
+        two.insert("a", test3);
+        two.insert("b", Vec::new());
         assert_eq!(toposort("", &two).unwrap(), ["b", "a"]);
     }
 
     #[test]
     fn cycles() {
         let mut cycle = IndexMap::new();
-        cycle.insert("a", vec![id("a")]);
+        let mut test1 = Vec::new();
+        test1.push(id("a"));
+        cycle.insert("a", test1);
         assert!(matches!(toposort("", &cycle), Err(Error::Cycle { .. })));
 
         let mut cycle = IndexMap::new();
-        cycle.insert("a", vec![id("b")]);
-        cycle.insert("b", vec![id("c")]);
-        cycle.insert("c", vec![id("a")]);
+        let mut test2 = Vec::new();
+        test2.push(id("b")); 
+        cycle.insert("a", test2);
+        let mut test3 = Vec::new();
+        test3.push(id("c")); 
+        cycle.insert("b", test3);
+        let mut test4 = Vec::new();
+        test4.push(id("a")); 
+        cycle.insert("c", test4);
         assert!(matches!(toposort("", &cycle), Err(Error::Cycle { .. })));
     }
 
     #[test]
     fn depend_twice() {
         let mut two = IndexMap::new();
-        two.insert("b", vec![id("a"), id("a")]);
-        two.insert("a", vec![]);
+        let mut test1 = Vec::new();
+        test1.push(id("a")); 
+        test1.push(id("a")); 
+        two.insert("b", test1);
+        two.insert("a", Vec::new());
         assert_eq!(toposort("", &two).unwrap(), ["a", "b"]);
     }
 }

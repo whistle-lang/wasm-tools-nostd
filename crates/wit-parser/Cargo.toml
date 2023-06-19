@@ -12,6 +12,10 @@ description = """
 Tooling for parsing `*.wit` files and working with their contents.
 """
 
+[features]
+default = ["std"]
+std =  []
+
 [dependencies]
 id-arena = "2"
 anyhow = { workspace = true }
@@ -21,6 +25,7 @@ unicode-xid = "0.2.2"
 log = { workspace = true }
 url = { workspace = true }
 semver = { workspace = true }
+hashbrown = { workspace = true }
 
 [dev-dependencies]
 rayon = "1"

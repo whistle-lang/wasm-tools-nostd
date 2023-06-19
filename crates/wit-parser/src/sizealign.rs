@@ -1,3 +1,5 @@
+use alloc::vec::Vec;
+
 use crate::{FlagsRepr, Int, Resolve, Type, TypeDef, TypeDefKind};
 
 #[derive(Default)]

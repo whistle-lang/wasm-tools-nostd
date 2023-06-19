@@ -1,14 +1,19 @@
-use anyhow::{Context, Result};
+#![cfg_attr(not(feature = "std"), no_std)]
+#![feature(error_in_core)]
+
+extern crate alloc;
+use core::{error, iter};
+
+use alloc::{borrow::Cow, fmt, format, slice, string::String, vec::Vec};
+use anyhow::Result;
 use id_arena::{Arena, Id};
 use indexmap::IndexMap;
 use semver::Version;
-use std::borrow::Cow;
-use std::fmt;
-use std::path::Path;
 
 pub mod abi;
 mod ast;
 use ast::lex::Span;
+#[cfg(feature = "std")]
 pub use ast::SourceMap;
 mod sizealign;
 pub use sizealign::*;
@@ -93,6 +98,7 @@ pub struct UnresolvedPackage {
     interface_spans: Vec<Span>,
     world_spans: Vec<Span>,
     foreign_dep_spans: Vec<Span>,
+    #[cfg(feature = "std")]
     source_map: SourceMap,
     foreign_world_spans: Vec<Span>,
 }
@@ -153,14 +159,15 @@ impl fmt::Display for Error {
     }
 }
 
-impl std::error::Error for Error {}
+impl error::Error for Error {}
 
 impl UnresolvedPackage {
     /// Parses the given string as a wit document.
     ///
     /// The `path` argument is used for error reporting. The `contents` provided
     /// will not be able to use `pkg` use paths to other documents.
-    pub fn parse(path: &Path, contents: &str) -> Result<Self> {
+    #[cfg(feature = "std")]
+    pub fn parse(path: &std::path::Path, contents: &str) -> Result<Self> {
         let mut map = SourceMap::default();
         map.push(path, contents);
         map.parse()
@@ -171,7 +178,8 @@ impl UnresolvedPackage {
     /// The path provided is inferred whether it's a file or a directory. A file
     /// is parsed with [`UnresolvedPackage::parse_file`] and a directory is
     /// parsed with [`UnresolvedPackage::parse_dir`].
-    pub fn parse_path(path: &Path) -> Result<Self> {
+    #[cfg(feature = "std")]
+    pub fn parse_path(path: &std::path::Path) -> Result<Self> {
         if path.is_dir() {
             UnresolvedPackage::parse_dir(path)
         } else {
@@ -183,7 +191,10 @@ impl UnresolvedPackage {
     ///
     /// The WIT package returned will be a single-document package and will not
     /// be able to use `pkg` paths to other documents.
-    pub fn parse_file(path: &Path) -> Result<Self> {
+    #[cfg(feature = "std")]
+    pub fn parse_file(path: &std::path::Path) -> Result<Self> {
+        use anyhow::Context;
+
         let contents = std::fs::read_to_string(path)
             .with_context(|| format!("failed to read file {path:?}"))?;
         Self::parse(path, &contents)
@@ -193,7 +204,10 @@ impl UnresolvedPackage {
     ///
     /// All files with the extension `*.wit` or `*.wit.md` will be loaded from
     /// `path` into the returned package.
-    pub fn parse_dir(path: &Path) -> Result<Self> {
+    #[cfg(feature = "std")]
+    pub fn parse_dir(path: &std::path::Path) -> Result<Self> {
+        use anyhow::Context;
+
         let mut map = SourceMap::default();
         let cx = || format!("failed to read directory {path:?}");
         for entry in path.read_dir().with_context(&cx)? {
@@ -222,7 +236,8 @@ impl UnresolvedPackage {
 
     /// Returns an iterator over the list of source files that were read when
     /// parsing this package.
-    pub fn source_files(&self) -> impl Iterator<Item = &Path> {
+    #[cfg(feature = "std")]
+    pub fn source_files(&self) -> impl Iterator<Item = &std::path::Path> {
         self.source_map.source_files()
     }
 }
@@ -567,8 +582,8 @@ pub enum Results {
 }
 
 pub enum ResultsTypeIter<'a> {
-    Named(std::slice::Iter<'a, (String, Type)>),
-    Anon(std::iter::Once<&'a Type>),
+    Named(slice::Iter<'a, (String, Type)>),
+    Anon(iter::Once<&'a Type>),
 }
 
 impl<'a> Iterator for ResultsTypeIter<'a> {
@@ -620,7 +635,7 @@ impl Results {
     pub fn iter_types(&self) -> ResultsTypeIter {
         match self {
             Results::Named(ps) => ResultsTypeIter::Named(ps.iter()),
-            Results::Anon(ty) => ResultsTypeIter::Anon(std::iter::once(ty)),
+            Results::Anon(ty) => ResultsTypeIter::Anon(iter::once(ty)),
         }
     }
 }

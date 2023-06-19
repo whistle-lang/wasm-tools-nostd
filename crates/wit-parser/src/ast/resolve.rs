@@ -1,10 +1,12 @@
+use core::mem;
+
 use super::{Error, ParamList, ResultList, WorldOrInterface};
 use crate::ast::toposort::toposort;
 use crate::*;
+use alloc::string::ToString;
 use anyhow::{bail, Result};
+use hashbrown::{HashMap, HashSet};
 use indexmap::IndexMap;
-use std::collections::{HashMap, HashSet};
-use std::mem;
 
 #[derive(Default)]
 pub struct Resolver<'a> {
@@ -207,6 +209,7 @@ impl<'a> Resolver<'a> {
             interface_spans: mem::take(&mut self.interface_spans),
             world_spans: mem::take(&mut self.world_spans),
             foreign_dep_spans: mem::take(&mut self.foreign_dep_spans),
+            #[cfg(feature = "std")]
             source_map: SourceMap::default(),
             foreign_world_spans: mem::take(&mut self.foreign_world_spans),
         })

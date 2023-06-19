@@ -1,11 +1,17 @@
+#[cfg(feature = "std")]
+use std::path::{Path, PathBuf};
+
 use crate::{Error, UnresolvedPackage};
+use alloc::{
+    borrow::Cow,
+    boxed::Box,
+    format,
+    string::{String, ToString},
+    vec::Vec, fmt,
+};
 use anyhow::{bail, Context, Result};
 use lex::{Span, Token, Tokenizer};
 use semver::Version;
-use std::borrow::Cow;
-use std::convert::TryFrom;
-use std::fmt;
-use std::path::{Path, PathBuf};
 
 pub mod lex;
 
@@ -1134,11 +1140,13 @@ fn err_expected(
 /// A listing of source files which are used to get parsed into an
 /// [`UnresolvedPackage`].
 #[derive(Clone, Default)]
+#[cfg(feature = "std")]
 pub struct SourceMap {
     sources: Vec<Source>,
     offset: u32,
 }
 
+#[cfg(feature = "std")]
 #[derive(Clone)]
 struct Source {
     offset: u32,
@@ -1146,6 +1154,7 @@ struct Source {
     contents: String,
 }
 
+#[cfg(feature = "std")]
 impl SourceMap {
     /// Creates a new empty source map.
     pub fn new() -> SourceMap {
@@ -1154,7 +1163,7 @@ impl SourceMap {
 
     /// Reads the file `path` on the filesystem and appends its contents to this
     /// [`SourceMap`].
-    pub fn push_file(&mut self, path: &Path) -> Result<()> {
+    pub fn push_file(&mut self, path: &std::path::Path) -> Result<()> {
         let contents = std::fs::read_to_string(path)
             .with_context(|| format!("failed to read file {path:?}"))?;
         self.push(path, contents);
@@ -1168,8 +1177,8 @@ impl SourceMap {
     /// used to create the final parsed package namely by unioning all the
     /// interfaces and worlds defined together. Note that each file has its own
     /// personal namespace, however, for top-level `use` and such.
-    pub fn push(&mut self, path: &Path, contents: impl Into<String>) {
-        let mut contents = contents.into();
+    pub fn push(&mut self, path: &std::path::Path, contents: impl Into<String>) {
+        let mut contents: String = contents.into();
         if path.extension().and_then(|s| s.to_str()) == Some("md") {
             log::debug!("automatically unwrapping markdown container");
             contents = unwrap_md(&contents);
