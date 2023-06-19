@@ -1,5 +1,6 @@
+use alloc::{borrow::Cow, vec::Vec};
+
 use crate::{encode_section, Encode, HeapType, Section, SectionId, ValType};
-use std::borrow::Cow;
 
 /// An encoder for the code section.
 ///
@@ -165,7 +166,7 @@ impl Function {
         L::IntoIter: ExactSizeIterator,
     {
         let locals = locals.into_iter();
-        let mut bytes = vec![];
+        let mut bytes = Vec::<u8>::new();
         locals.len().encode(&mut bytes);
         for (count, ty) in locals {
             count.encode(&mut bytes);
@@ -196,7 +197,7 @@ impl Function {
     {
         let locals = locals.into_iter();
 
-        let mut locals_collected: Vec<(u32, ValType)> = vec![];
+        let mut locals_collected: Vec<(u32, ValType)> = Vec::<(u32, ValType)>::new();
         for l in locals {
             if let Some((last_count, last_type)) = locals_collected.last_mut() {
                 if l == *last_type {
@@ -2829,7 +2830,7 @@ impl ConstExpr {
     }
 
     fn new_insn(insn: Instruction) -> Self {
-        let mut bytes = vec![];
+        let mut bytes = Vec::<u8>::new();
         insn.encode(&mut bytes);
         Self { bytes }
     }

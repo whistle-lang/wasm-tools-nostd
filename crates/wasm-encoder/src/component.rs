@@ -9,6 +9,8 @@ mod names;
 mod start;
 mod types;
 
+use alloc::vec::Vec;
+
 pub use self::aliases::*;
 pub use self::canonicals::*;
 pub use self::components::*;

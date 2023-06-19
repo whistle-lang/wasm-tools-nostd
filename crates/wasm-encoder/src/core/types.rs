@@ -1,3 +1,5 @@
+use alloc::vec::Vec;
+
 use crate::{encode_section, Encode, Section, SectionId};
 
 /// Field type in structural types (structs, arrays).

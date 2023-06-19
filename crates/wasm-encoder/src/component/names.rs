@@ -1,4 +1,4 @@
-use std::borrow::Cow;
+use alloc::borrow::Cow;
 
 use super::*;
 use crate::{encoding_size, CustomSection, Encode, ExportKind, NameMap, SectionId};

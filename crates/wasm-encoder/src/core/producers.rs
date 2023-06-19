@@ -1,4 +1,4 @@
-use std::borrow::Cow;
+use alloc::{vec::Vec, borrow::Cow};
 
 use crate::{CustomSection, Encode, Section, SectionId};
 

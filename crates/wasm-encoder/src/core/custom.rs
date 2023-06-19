@@ -1,4 +1,4 @@
-use std::borrow::Cow;
+use alloc::{borrow::Cow, vec::Vec};
 
 use crate::{encoding_size, Encode, Section, SectionId};
 
@@ -37,19 +37,11 @@ mod tests {
             data: Cow::Borrowed(&[11, 22, 33, 44]),
         };
 
-        let mut encoded = vec![];
+        let mut encoded = Vec::<u8>::new();
         custom.encode(&mut encoded);
 
-        #[rustfmt::skip]
-        assert_eq!(encoded, vec![
-            // LEB128 length of section.
-            9,
-            // LEB128 length of name.
-            4,
-            // Name.
-            b't', b'e', b's', b't',
-            // Data.
-            11, 22, 33, 44,
-        ]);
+        let mut compare_to = Vec::<u8>::new();
+        compare_to.extend(&[9, 4, b't', b'e', b's', b't', 11, 22, 33, 44]);
+        assert_eq!(encoded, compare_to);
     }
 }

@@ -1,3 +1,5 @@
+use alloc::vec::Vec;
+
 use crate::{encode_section, ComponentSection, ComponentSectionId, ComponentValType, Encode};
 
 /// Represents options for canonical function definitions.

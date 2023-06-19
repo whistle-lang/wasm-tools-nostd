@@ -1,3 +1,5 @@
+use alloc::vec::Vec;
+
 use crate::{encode_section, Encode, Section, SectionId};
 
 /// An encoder for the memory section.

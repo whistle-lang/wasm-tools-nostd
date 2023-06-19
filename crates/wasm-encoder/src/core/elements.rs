@@ -1,3 +1,5 @@
+use alloc::vec::Vec;
+
 use crate::{encode_section, ConstExpr, Encode, RefType, Section, SectionId};
 
 /// An encoder for the element section.

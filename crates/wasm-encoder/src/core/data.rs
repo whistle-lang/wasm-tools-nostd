@@ -1,3 +1,5 @@
+use alloc::vec::Vec;
+
 use crate::{encode_section, encoding_size, ConstExpr, Encode, Section, SectionId};
 
 /// An encoder for the data section.

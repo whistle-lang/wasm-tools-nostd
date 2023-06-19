@@ -69,10 +69,12 @@
 //! ```
 
 #![deny(missing_docs, missing_debug_implementations)]
-
+#![no_std]
+extern crate alloc;
 mod component;
 mod core;
 mod raw;
+use alloc::vec::Vec;
 
 pub use self::component::*;
 pub use self::core::*;

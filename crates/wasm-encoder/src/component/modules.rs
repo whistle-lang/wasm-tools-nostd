@@ -1,3 +1,5 @@
+use alloc::vec::Vec;
+
 use crate::{ComponentSection, ComponentSectionId, Encode, Module};
 
 /// An encoder for the module section of WebAssembly components.

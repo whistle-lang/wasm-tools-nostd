@@ -1,3 +1,5 @@
+use alloc::vec::Vec;
+
 use super::{
     COMPONENT_SORT, CORE_MODULE_SORT, CORE_SORT, FUNCTION_SORT, INSTANCE_SORT, TYPE_SORT,
     VALUE_SORT,

@@ -1,4 +1,4 @@
-use std::borrow::Cow;
+use alloc::{borrow::Cow, vec::Vec};
 
 use crate::{encode_section, CustomSection, Encode, Section, SectionId};
 
@@ -117,7 +117,7 @@ impl SymbolTable {
     /// Construct a new symbol table subsection encoder.
     pub fn new() -> Self {
         SymbolTable {
-            bytes: vec![],
+            bytes: Vec::<u8>::new(),
             num_added: 0,
         }
     }

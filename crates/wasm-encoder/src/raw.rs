@@ -1,3 +1,5 @@
+use alloc::vec::Vec;
+
 use crate::{ComponentSection, Encode, Section};
 
 /// A section made up of uninterpreted, raw bytes.

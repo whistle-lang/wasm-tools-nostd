@@ -1,3 +1,5 @@
+use alloc::vec::Vec;
+
 use super::{COMPONENT_SORT, CORE_MODULE_SORT, CORE_SORT, CORE_TYPE_SORT, TYPE_SORT};
 use crate::{
     encode_section, ComponentExportKind, ComponentSection, ComponentSectionId, Encode, ExportKind,

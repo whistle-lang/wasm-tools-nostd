@@ -1,4 +1,4 @@
-use std::borrow::Cow;
+use alloc::{borrow::Cow, string::String, vec::Vec};
 
 use crate::{CustomSection, Encode, Section};
 
@@ -58,7 +58,8 @@ impl CoreDumpSection {
 
     /// View the encoded section as a CustomSection.
     fn as_custom<'a>(&'a self) -> CustomSection<'a> {
-        let mut data = vec![0];
+        let mut data = Vec::<u8>::new();
+        data.push(0);
         self.name.encode(&mut data);
         CustomSection {
             name: "core".into(),
@@ -101,14 +102,14 @@ impl CoreDumpModulesSection {
     /// Create a new core dump modules section encoder.
     pub fn new() -> Self {
         CoreDumpModulesSection {
-            bytes: vec![],
+            bytes: Vec::<u8>::new(),
             num_added: 0,
         }
     }
 
     /// View the encoded section as a CustomSection.
     pub fn as_custom(&self) -> CustomSection<'_> {
-        let mut data = vec![];
+        let mut data = Vec::<u8>::new();
         self.num_added.encode(&mut data);
         data.extend(self.bytes.iter().copied());
         CustomSection {
@@ -154,14 +155,14 @@ impl CoreDumpInstancesSection {
     /// Create a new core dump instances section encoder.
     pub fn new() -> Self {
         CoreDumpInstancesSection {
-            bytes: vec![],
+            bytes: Vec::<u8>::new(),
             num_added: 0,
         }
     }
 
     /// View the encoded section as a CustomSection.
     pub fn as_custom(&self) -> CustomSection<'_> {
-        let mut data = vec![];
+        let mut data = Vec::<u8>::new();
         self.num_added.encode(&mut data);
         data.extend(self.bytes.iter().copied());
         CustomSection {
@@ -268,7 +269,8 @@ impl CoreDumpStackSection {
 
     /// View the encoded section as a CustomSection.
     pub fn as_custom<'a>(&'a self) -> CustomSection<'a> {
-        let mut data = vec![0];
+        let mut data = Vec::<u8>::new();
+        data.push(0);
         self.name.encode(&mut data);
         self.count.encode(&mut data);
         data.extend(&self.frame_bytes);
@@ -408,8 +410,10 @@ mod tests {
     fn test_roundtrip_coreinstances() {
         let mut coreinstances = CoreDumpInstancesSection::new();
         let module_index = 0;
-        let memories = vec![42];
-        let globals = vec![17];
+        let mut memories = Vec::<u32>::new();
+        memories.push(42);
+        let mut globals = Vec::<u32>::new();
+        globals.push(17);
         coreinstances.instance(module_index, memories, globals);
 
         let mut module = Module::new();
@@ -451,13 +455,11 @@ mod tests {
     #[test]
     fn test_roundtrip_corestack() {
         let mut corestack = CoreDumpStackSection::new("main");
-        corestack.frame(
-            0,
-            12,
-            0,
-            vec![CoreDumpValue::I32(10)],
-            vec![CoreDumpValue::I32(42)],
-        );
+        let mut locals = Vec::<CoreDumpValue>::new();
+        locals.push(CoreDumpValue::I32(10));
+        let mut stack = Vec::<CoreDumpValue>::new();
+        stack.push(CoreDumpValue::I32(42));
+        corestack.frame(0, 12, 0, locals, stack);
         let mut module = Module::new();
         module.section(&corestack);
         let wasm_bytes = module.finish();
@@ -507,20 +509,17 @@ mod tests {
     fn test_encode_coredump_section() {
         let core = CoreDumpSection::new("test");
 
-        let mut encoded = vec![];
+        let mut encoded = Vec::<u8>::new();
         core.encode(&mut encoded);
-
-        #[rustfmt::skip]
-        assert_eq!(encoded, vec![
+        let mut equals_to = Vec::<u8>::new();
+        equals_to.extend_from_slice(&[
             // section length
-            11,
-            // name length
-            4,
-            // section name (core)
-            b'c',b'o',b'r',b'e',
-            // process-info (0, data length, data)
+            11, // name length
+            4,  // section name (core)
+            b'c', b'o', b'r', b'e', // process-info (0, data length, data)
             0, 4, b't', b'e', b's', b't',
         ]);
+        assert_eq!(encoded, equals_to);
     }
 
     #[test]
@@ -529,99 +528,80 @@ mod tests {
         modules.module("mod1");
         modules.module("mod2");
 
-        let mut encoded = vec![];
+        let mut encoded = Vec::<u8>::new();
         modules.encode(&mut encoded);
 
-        #[rustfmt::skip]
-        assert_eq!(encoded, vec![
+        let mut equals_to = Vec::<u8>::new();
+        equals_to.extend_from_slice(&[
             // section length
-            25,
-            // name length
-            11,
-            // section name (coremodules)
-            b'c',b'o',b'r',b'e',b'm',b'o',b'd',b'u',b'l',b'e',b's',
+            25, // name length
+            11, // section name (coremodules)
+            b'c', b'o', b'r', b'e', b'm', b'o', b'd', b'u', b'l', b'e', b's',
             // module count
-            2,
-            // 0x0, name-length, module name (mod1)
-            0x0, 4, b'm',b'o',b'd',b'1',
-            // 0x0, name-length, module name (mod2)
-            0x0, 4, b'm',b'o',b'd',b'2'
+            2, // 0x0, name-length, module name (mod1)
+            0x0, 4, b'm', b'o', b'd', b'1', // 0x0, name-length, module name (mod2)
+            0x0, 4, b'm', b'o', b'd', b'2',
         ]);
+        assert_eq!(encoded, equals_to);
     }
 
     #[test]
     fn test_encode_coreinstances_section() {
         let mut instances = CoreDumpInstancesSection::new();
-        instances.instance(0, vec![42], vec![17]);
+        let mut memories = Vec::<u32>::new();
+        memories.push(42);
+        let mut globals = Vec::<u32>::new();
+        globals.push(17);
 
-        let mut encoded = vec![];
+        instances.instance(0, memories, globals);
+
+        let mut encoded = Vec::<u8>::new();
         instances.encode(&mut encoded);
 
-        #[rustfmt::skip]
-        assert_eq!(encoded, vec![
+        let mut equals_to = Vec::<u8>::new();
+        equals_to.extend_from_slice(&[
             // section length
-            21,
-            // name length
-            13,
-            // section name (coreinstances)
-            b'c',b'o',b'r',b'e',b'i',b'n',b's',b't',b'a',b'n',b'c',b'e',b's',
+            21, // name length
+            13, // section name (coreinstances)
+            b'c', b'o', b'r', b'e', b'i', b'n', b's', b't', b'a', b'n', b'c', b'e', b's',
             // instance count
-            1,
-            // 0x0, module_idx
-            0x0, 0,
-            // memories count, memories
-            1, 42, 
-            // globals count, globals
-            1, 17
+            1, // 0x0, module_idx
+            0x0, 0, // memories count, memories
+            1, 42, // globals count, globals
+            1, 17,
         ]);
+        assert_eq!(encoded, equals_to);
     }
 
     #[test]
     fn test_encode_corestack_section() {
         let mut thread = CoreDumpStackSection::new("main");
-        thread.frame(
-            0,
-            42,
-            51,
-            vec![CoreDumpValue::I32(1)],
-            vec![CoreDumpValue::I32(2)],
-        );
+        let mut locals = Vec::<CoreDumpValue>::new();
+        locals.push(CoreDumpValue::I32(1));
+        let mut stack = Vec::<CoreDumpValue>::new();
+        stack.push(CoreDumpValue::I32(2));
+        thread.frame(0, 42, 51, locals, stack);
 
-        let mut encoded = vec![];
+        let mut encoded = Vec::<u8>::new();
         thread.encode(&mut encoded);
 
-        #[rustfmt::skip]
-        assert_eq!(
-            encoded,
-            vec![
-                // section length
-                27, 
-                // length of name.
-                9,
-                // section name (corestack)
-                b'c',b'o',b'r',b'e',b's',b't',b'a',b'c',b'k',
-                // 0x0, thread name length
-                0, 4,
-                // thread name (main)
-                b'm',b'a',b'i',b'n',
-                // frame count
-                1,
-                // 0x0, instanceidx, funcidx, codeoffset
-                0, 0, 42, 51,
-                // local count
-                1,
-                // local value type
-                0x7F,
-                // local value
-                1,
-                // stack count
-                1,
-                // stack value type
-                0x7F,
-                // stack value
-                2
-
-            ]
-        );
+        let mut equals_to = Vec::<u8>::new();
+        equals_to.extend_from_slice(&[
+            // section length
+            27, // length of name.
+            9,  // section name (corestack)
+            b'c', b'o', b'r', b'e', b's', b't', b'a', b'c', b'k', // 0x0, thread name length
+            0, 4, // thread name (main)
+            b'm', b'a', b'i', b'n', // frame count
+            1,    // 0x0, instanceidx, funcidx, codeoffset
+            0, 0, 42, 51,   // local count
+            1,    // local value type
+            0x7F, // local value
+            1,    // stack count
+            1,    // stack value type
+            0x7F, // stack value
+            2,
+        ]);
+        assert_eq!(encoded, equals_to);
     }
 }

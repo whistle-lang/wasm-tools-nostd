@@ -1,4 +1,4 @@
-use std::borrow::Cow;
+use alloc::{borrow::Cow, vec::Vec};
 
 use crate::{encoding_size, CustomSection, Encode, Section, SectionId};
 
@@ -188,7 +188,7 @@ impl NameMap {
     /// Creates a new empty `NameMap`.
     pub fn new() -> NameMap {
         NameMap {
-            bytes: vec![],
+            bytes: Vec::<u8>::new(),
             count: 0,
         }
     }
@@ -236,7 +236,7 @@ impl IndirectNameMap {
     /// Creates a new empty name map.
     pub fn new() -> IndirectNameMap {
         IndirectNameMap {
-            bytes: vec![],
+            bytes: Vec::<u8>::new(),
             count: 0,
         }
     }

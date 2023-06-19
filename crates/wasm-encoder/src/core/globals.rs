@@ -1,3 +1,5 @@
+use alloc::vec::Vec;
+
 use crate::{encode_section, ConstExpr, Encode, Section, SectionId, ValType};
 
 /// An encoder for the global section.
