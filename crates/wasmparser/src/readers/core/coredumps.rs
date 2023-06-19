@@ -1,3 +1,5 @@
+use alloc::vec::Vec;
+
 use crate::{BinaryReader, FromReader, Result};
 
 /// The data portion of a custom section representing a core dump. Per the
@@ -53,7 +55,7 @@ pub struct CoreDumpModulesSection<'a> {
 impl<'a> FromReader<'a> for CoreDumpModulesSection<'a> {
     fn from_reader(reader: &mut BinaryReader<'a>) -> Result<Self> {
         let pos = reader.original_position();
-        let mut modules = vec![];
+        let mut modules = Vec::<&str>::new();
         for _ in 0..reader.read_var_u32()? {
             if reader.read_u8()? != 0 {
                 bail!(pos, "invalid start byte for coremodule");
@@ -71,7 +73,7 @@ pub struct CoreDumpInstancesSection {
 
 impl<'a> FromReader<'a> for CoreDumpInstancesSection {
     fn from_reader(reader: &mut BinaryReader<'a>) -> Result<Self> {
-        let mut instances = vec![];
+        let mut instances = Vec::<CoreDumpInstance>::new();
         for _ in 0..reader.read_var_u32()? {
             instances.push(CoreDumpInstance::from_reader(reader)?);
         }
@@ -101,11 +103,11 @@ impl<'a> FromReader<'a> for CoreDumpInstance {
             bail!(pos, "invalid start byte for core dump instance");
         }
         let module_index = reader.read_var_u32()?;
-        let mut memories = vec![];
+        let mut memories = Vec::<u32>::new();
         for _ in 0..reader.read_var_u32()? {
             memories.push(reader.read_var_u32()?);
         }
-        let mut globals = vec![];
+        let mut globals = Vec::<u32>::new();
 
         for _ in 0..reader.read_var_u32()? {
             globals.push(reader.read_var_u32()?);
@@ -153,14 +155,11 @@ impl<'a> FromReader<'a> for CoreDumpStackSection<'a> {
             bail!(pos, "invalid start byte for core dump stack name");
         }
         let name = reader.read_string()?;
-        let mut frames = vec![];
+        let mut frames = Vec::<CoreDumpStackFrame>::new();
         for _ in 0..reader.read_var_u32()? {
             frames.push(CoreDumpStackFrame::from_reader(reader)?);
         }
-        Ok(CoreDumpStackSection {
-            name: name,
-            frames: frames,
-        })
+        Ok(CoreDumpStackSection { name, frames })
     }
 }
 
@@ -188,11 +187,11 @@ impl<'a> FromReader<'a> for CoreDumpStackFrame {
         let instanceidx = reader.read_var_u32()?;
         let funcidx = reader.read_var_u32()?;
         let codeoffset = reader.read_var_u32()?;
-        let mut locals = vec![];
+        let mut locals = Vec::<CoreDumpValue>::new();
         for _ in 0..reader.read_var_u32()? {
             locals.push(CoreDumpValue::from_reader(reader)?);
         }
-        let mut stack = vec![];
+        let mut stack = Vec::<CoreDumpValue>::new();
         for _ in 0..reader.read_var_u32()? {
             stack.push(CoreDumpValue::from_reader(reader)?);
         }

@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+use alloc::boxed::Box;
+
 use crate::{BinaryReader, BinaryReaderError, Result, ValType};
 
 /// Represents a block type.

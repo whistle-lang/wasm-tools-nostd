@@ -13,9 +13,16 @@
  * limitations under the License.
  */
 
+use core::fmt::Write;
+use core::mem;
+
+use alloc::boxed::Box;
+use alloc::fmt;
+use alloc::string::String;
+use alloc::vec::Vec;
+
 use crate::limits::{MAX_WASM_FUNCTION_PARAMS, MAX_WASM_FUNCTION_RETURNS, MAX_WASM_STRUCT_FIELDS};
 use crate::{BinaryReader, FromReader, Result, SectionLimited};
-use std::fmt::{self, Debug, Write};
 
 /// Represents the types of values in a WebAssembly module.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
@@ -47,7 +54,7 @@ pub enum StorageType {
 
 // The size of `ValType` is performance sensitive.
 const _: () = {
-    assert!(std::mem::size_of::<ValType>() == 4);
+    assert!(mem::size_of::<ValType>() == 4);
 };
 
 impl From<RefType> for ValType {
@@ -196,8 +203,8 @@ impl fmt::Display for ValType {
 #[derive(Copy, Clone, PartialEq, Eq, Hash)]
 pub struct RefType([u8; 3]);
 
-impl Debug for RefType {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl alloc::fmt::Debug for RefType {
+    fn fmt(&self, f: &mut alloc::fmt::Formatter<'_>) -> alloc::fmt::Result {
         match (self.is_nullable(), self.heap_type()) {
             (true, HeapType::Any) => write!(f, "anyref"),
             (false, HeapType::Any) => write!(f, "(ref any)"),
@@ -691,8 +698,8 @@ pub struct StructType {
     pub fields: Box<[FieldType]>,
 }
 
-impl Debug for FuncType {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl alloc::fmt::Debug for FuncType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("FuncType")
             .field("params", &self.params())
             .field("returns", &self.results())

@@ -13,10 +13,12 @@
  * limitations under the License.
  */
 
+use ::core::marker;
+use ::core::ops::Range;
+
+use alloc::fmt;
+
 use crate::{BinaryReader, BinaryReaderError, Result};
-use std::fmt;
-use std::marker;
-use std::ops::Range;
 
 mod component;
 mod core;

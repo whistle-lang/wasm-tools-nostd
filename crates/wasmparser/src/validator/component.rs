@@ -1,5 +1,7 @@
 //! State relating to validating a WebAssembly component.
 
+use core::{cmp, mem};
+
 use super::{
     check_max, combine_type_sizes,
     core::Module,
@@ -20,9 +22,15 @@ use crate::{
     ComponentOuterAliasKind, ComponentTypeRef, ExternalKind, FuncType, GlobalType,
     InstantiationArgKind, MemoryType, Result, TableType, TypeBounds, ValType, WasmFeatures,
 };
+use alloc::{
+    borrow::ToOwned,
+    boxed::Box,
+    format,
+    string::{String, ToString},
+    vec::Vec,
+};
+use hashbrown::{HashSet, HashMap};
 use indexmap::{map::Entry, IndexMap, IndexSet};
-use std::collections::{HashMap, HashSet};
-use std::mem;
 
 fn to_kebab_str<'a>(s: &'a str, desc: &str, offset: usize) -> Result<&'a KebabStr> {
     match KebabStr::new(s) {
@@ -486,7 +494,11 @@ impl ComponentState {
                             // resource is injected with a fresh new identifier
                             // into our state.
                             if created == referenced {
-                                self.imported_resources.insert(id, vec![self.imports.len()]);
+                                let mut len = Vec::<usize>::new();
+
+                                len.push(self.imports.len());
+
+                                self.imported_resources.insert(id, len);
                             }
                         }
 
@@ -507,7 +519,9 @@ impl ComponentState {
                             // update the `explicit_resources` list. A new
                             // export path is about to be created for this
                             // resource and this keeps track of that.
-                            self.explicit_resources.insert(id, vec![self.exports.len()]);
+                            let mut len = Vec::<usize>::new();
+                            len.push(self.exports.len());
+                            self.explicit_resources.insert(id, len);
                         }
 
                         None => {}
@@ -775,8 +789,8 @@ impl ComponentState {
         for (old, new) in ty.defined_resources.iter().zip(&resources) {
             let prev = mapping.resources.insert(*old, *new);
             assert!(prev.is_none());
-
-            let mut base = vec![self.imports.len()];
+            let mut base = Vec::<usize>::new();
+            base.push(self.imports.len());
             base.extend(ty.explicit_resources[old].iter().copied());
             self.imported_resources.insert(*new, base);
         }
@@ -856,7 +870,8 @@ impl ComponentState {
         // generated.
         let ty = types[*id].as_component_instance_type().unwrap();
         for (id, path) in ty.explicit_resources.iter() {
-            let mut new_path = vec![self.exports.len()];
+            let mut new_path = Vec::<usize>::new();
+            new_path.push(self.exports.len());
             new_path.extend(path);
             self.explicit_resources.insert(*id, new_path);
         }
@@ -1550,8 +1565,7 @@ impl ComponentState {
     ) -> Result<ComponentFuncType> {
         let mut type_size = 1;
 
-        let mut set =
-            HashSet::with_capacity(std::cmp::max(ty.params.len(), ty.results.type_count()));
+        let mut set = HashSet::with_capacity(cmp::max(ty.params.len(), ty.results.type_count()));
 
         let params = ty
             .params
@@ -1992,7 +2006,8 @@ impl ComponentState {
                             .explicit_resources
                             .iter()
                             .map(|(id, path)| {
-                                let mut new_path = vec![inst_exports.len()];
+                                let mut new_path = Vec::<usize>::new();
+                                new_path.push(inst_exports.len());
                                 new_path.extend(path);
                                 (*id, new_path)
                             }),
@@ -2012,7 +2027,9 @@ impl ComponentState {
                     // path because if this instance ends up getting used
                     // it'll count towards the "explicit in" check.
                     if let Type::Resource(id) = &types[ty] {
-                        explicit_resources.insert(*id, vec![inst_exports.len()]);
+                        let mut len = Vec::<usize>::new();
+                        len.push(inst_exports.len());
+                        explicit_resources.insert(*id, len);
                     }
                     ComponentEntityType::Type {
                         referenced: ty,
@@ -2453,7 +2470,7 @@ impl ComponentState {
             let name = to_kebab_str(name, "record field", offset)?;
             let ty = self.create_component_val_type(*ty, types, offset)?;
 
-            match field_map.entry(name.to_owned()) {
+            match field_map.entry(name.to_owned() as KebabString) {
                 Entry::Occupied(e) => bail!(
                     offset,
                     "record field name `{name}` conflicts with previous field name `{prev}`",
@@ -2512,7 +2529,7 @@ impl ComponentState {
                 .map(|ty| self.create_component_val_type(ty, types, offset))
                 .transpose()?;
 
-            match case_map.entry(name.to_owned()) {
+            match case_map.entry(name.to_owned() as KebabString) {
                 Entry::Occupied(e) => bail!(
                     offset,
                     "variant case name `{name}` conflicts with previous case name `{prev}`",
@@ -2530,9 +2547,10 @@ impl ComponentState {
                     // was already verified to be kebab case.
                     e.insert(VariantCase {
                         ty,
-                        refines: case
-                            .refines
-                            .map(|i| KebabStr::new_unchecked(cases[i as usize].name).to_owned()),
+                        refines: case.refines.map(|i| {
+                            KebabStr::new_unchecked(cases[i as usize].name).to_owned()
+                                as KebabString
+                        }),
                     });
                 }
             }
@@ -2577,7 +2595,9 @@ impl ComponentState {
             }
         }
 
-        Ok(ComponentDefinedType::Flags(names_set))
+        Ok(ComponentDefinedType::Flags(
+            names_set as IndexSet<KebabString>,
+        ))
     }
 
     fn create_enum_type(&self, cases: &[&str], offset: usize) -> Result<ComponentDefinedType> {
@@ -2592,7 +2612,7 @@ impl ComponentState {
 
         for tag in cases {
             let tag = to_kebab_str(tag, "enum tag", offset)?;
-            if !tags.insert(tag.to_owned()) {
+            if !tags.insert(tag.to_owned() as KebabString) {
                 bail!(
                     offset,
                     "enum tag name `{tag}` conflicts with previous tag name `{prev}`",
@@ -3047,15 +3067,15 @@ impl KebabNameContext {
 use self::append_only::*;
 
 mod append_only {
+    use core::ops::Deref;
+
     use indexmap::IndexMap;
-    use std::hash::Hash;
-    use std::ops::Deref;
 
     pub struct IndexMapAppendOnly<K, V>(IndexMap<K, V>);
 
     impl<K, V> IndexMapAppendOnly<K, V>
     where
-        K: Hash + Eq + PartialEq,
+        K: core::hash::Hash + Eq + PartialEq,
     {
         pub fn insert(&mut self, key: K, value: V) {
             let prev = self.0.insert(key, value);

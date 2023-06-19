@@ -13,8 +13,9 @@
  * limitations under the License.
  */
 
+use core::ops::Range;
+
 use crate::{BinaryReader, FromReader, OperatorsReader, Result, SectionLimited, ValType};
-use std::ops::Range;
 
 /// A reader for the code section of a WebAssembly module.
 pub type CodeSectionReader<'a> = SectionLimited<'a, FunctionBody<'a>>;

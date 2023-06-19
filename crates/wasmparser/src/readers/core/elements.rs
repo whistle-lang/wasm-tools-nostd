@@ -13,11 +13,12 @@
  * limitations under the License.
  */
 
+use core::ops::Range;
+
 use crate::{
     BinaryReader, BinaryReaderError, ConstExpr, ExternalKind, FromReader, RefType, Result,
     SectionLimited,
 };
-use std::ops::Range;
 
 /// Represents a core WebAssembly element segment.
 #[derive(Clone)]

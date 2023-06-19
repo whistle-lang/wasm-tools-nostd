@@ -1,9 +1,13 @@
+use core::iter;
+
+use alloc::boxed::Box;
+use alloc::fmt;
+
 use crate::limits::*;
 use crate::{
     BinaryReader, ComponentAlias, ComponentExternName, ComponentImport, ComponentTypeRef,
     FromReader, FuncType, Import, Result, SectionLimited, Type, TypeRef, ValType,
 };
-use std::fmt;
 
 /// Represents the kind of an outer core alias in a WebAssembly component.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -413,7 +417,7 @@ impl ComponentFuncResult<'_> {
         }
 
         match self {
-            Self::Unnamed(ty) => Either::Left(std::iter::once(ty).map(|ty| (None, ty))),
+            Self::Unnamed(ty) => Either::Left(iter::once(ty).map(|ty| (None, ty))),
             Self::Named(vec) => Either::Right(vec.iter().map(|(n, ty)| (Some(*n), ty))),
         }
     }

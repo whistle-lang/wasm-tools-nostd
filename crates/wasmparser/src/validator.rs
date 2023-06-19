@@ -13,13 +13,13 @@
  * limitations under the License.
  */
 
+use ::core::mem;
+use ::core::ops::Range;
+
 use crate::{
     limits::*, BinaryReaderError, Encoding, FromReader, FunctionBody, HeapType, Parser, Payload,
     Result, SectionLimited, ValType, WASM_COMPONENT_VERSION, WASM_MODULE_VERSION,
 };
-use std::mem;
-use std::ops::Range;
-use std::sync::Arc;
 
 /// Test whether the given buffer contains a valid WebAssembly module or component,
 /// analogous to [`WebAssembly.validate`][js] in the JS API.
@@ -56,6 +56,8 @@ use self::component::*;
 pub use self::core::ValidatorResources;
 use self::core::*;
 use self::types::{TypeAlloc, Types, TypesRef};
+use alloc::sync::Arc;
+use alloc::vec::Vec;
 pub use func::{FuncToValidate, FuncValidator, FuncValidatorAllocations};
 pub use operators::{Frame, FrameKind};
 
@@ -1253,7 +1255,7 @@ impl Validator {
     ///
     /// Returns the types known to the validator for the module or component.
     pub fn end(&mut self, offset: usize) -> Result<Types> {
-        match std::mem::replace(&mut self.state, State::End) {
+        match mem::replace(&mut self.state, State::End) {
             State::Unparsed(_) => Err(BinaryReaderError::new(
                 "cannot call `end` before a header has been parsed",
                 offset,
@@ -1403,6 +1405,8 @@ impl Validator {
 
 #[cfg(test)]
 mod tests {
+    use core::ptr;
+
     use crate::{GlobalType, MemoryType, RefType, TableType, ValType, Validator, WasmFeatures};
     use anyhow::Result;
 
@@ -1534,11 +1538,11 @@ mod tests {
         assert!(a1_id == a2_id);
 
         // However, they should all point to the same type
-        assert!(std::ptr::eq(
+        assert!(ptr::eq(
             types.type_from_id(t_id).unwrap(),
             types.type_from_id(a1_id).unwrap()
         ));
-        assert!(std::ptr::eq(
+        assert!(ptr::eq(
             types.type_from_id(t_id).unwrap(),
             types.type_from_id(a2_id).unwrap()
         ));
@@ -1575,11 +1579,11 @@ mod tests {
         assert!(a1_id != a2_id);
 
         // However, they should all point to the same type
-        assert!(std::ptr::eq(
+        assert!(ptr::eq(
             types.type_from_id(t_id).unwrap(),
             types.type_from_id(a1_id).unwrap()
         ));
-        assert!(std::ptr::eq(
+        assert!(ptr::eq(
             types.type_from_id(t_id).unwrap(),
             types.type_from_id(a2_id).unwrap()
         ));

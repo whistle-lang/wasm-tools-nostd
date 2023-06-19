@@ -1,5 +1,6 @@
+use core::ops::Range;
+
 use crate::{BinaryReader, BinaryReaderError, NameMap, Result, Subsection, Subsections};
-use std::ops::Range;
 
 /// Type used to iterate and parse the contents of the `component-name` custom
 /// section in compnents, similar to the `name` section of core modules.

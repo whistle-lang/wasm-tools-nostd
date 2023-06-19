@@ -1,5 +1,7 @@
 //! Types relating to type information provided by validation.
 
+use core::{mem, borrow::Borrow, hash::Hasher, ops::{Index, Deref, DerefMut}, sync::atomic::{AtomicU64, Ordering}};
+
 use super::{
     component::{ComponentState, ExternKind},
     core::Module,
@@ -9,18 +11,9 @@ use crate::{
     ArrayType, BinaryReaderError, Export, ExternalKind, FuncType, GlobalType, Import, MemoryType,
     PrimitiveValType, RefType, Result, StructType, TableType, TypeRef, ValType,
 };
+use alloc::{boxed::Box, string::String, vec::Vec, sync::Arc, format};
+use hashbrown::{HashMap, HashSet};
 use indexmap::{IndexMap, IndexSet};
-use std::collections::HashMap;
-use std::collections::HashSet;
-use std::ops::Index;
-use std::sync::atomic::{AtomicU64, Ordering};
-use std::{
-    borrow::Borrow,
-    hash::{Hash, Hasher},
-    mem,
-    ops::{Deref, DerefMut},
-    sync::Arc,
-};
 
 /// The maximum number of parameters in the canonical ABI that can be passed by value.
 ///
@@ -162,7 +155,7 @@ pub struct TypeId {
 // The size of `TypeId` was seen to have a large-ish impact in #844, so this
 // assert ensures that it stays relatively small.
 const _: () = {
-    assert!(std::mem::size_of::<TypeId>() <= 16);
+    assert!(mem::size_of::<TypeId>() <= 16);
 };
 
 /// A unified type definition for validating WebAssembly modules and components.
@@ -385,7 +378,7 @@ impl<'a> Borrow<dyn ModuleImportKey + 'a> for (String, String) {
     }
 }
 
-impl Hash for (dyn ModuleImportKey + '_) {
+impl core::hash::Hash for (dyn ModuleImportKey + '_) {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.module().hash(state);
         self.name().hash(state);

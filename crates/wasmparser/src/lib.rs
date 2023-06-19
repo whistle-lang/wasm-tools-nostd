@@ -22,9 +22,10 @@
 //! If you need random access to the entire WebAssembly data-structure,
 //! this is not the right library for you. You could however, build such
 //! a data-structure using this library.
-
+#![no_std]
+#![feature(error_in_core)]
 #![deny(missing_docs)]
-
+extern crate alloc;
 /// A helper macro to conveniently iterate over all opcodes recognized by this
 /// crate. This can be used to work with either the [`Operator`] enumeration or
 /// the [`VisitOperator`] trait if your use case uniformly handles all operators

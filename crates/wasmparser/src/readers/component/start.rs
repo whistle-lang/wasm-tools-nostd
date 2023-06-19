@@ -1,3 +1,5 @@
+use alloc::boxed::Box;
+
 use crate::limits::{MAX_WASM_FUNCTION_RETURNS, MAX_WASM_START_ARGS};
 use crate::{BinaryReader, FromReader, Result};
 

@@ -1,3 +1,5 @@
+use alloc::boxed::Box;
+
 use crate::limits::MAX_WASM_CANONICAL_OPTIONS;
 use crate::{BinaryReader, ComponentValType, FromReader, Result, SectionLimited};
 

@@ -22,12 +22,15 @@
 // confusing it's recommended to read over that section to see how it maps to
 // the various methods here.
 
+use core::{mem, ops::{Deref, DerefMut}};
+
+use alloc::{vec::Vec, borrow::ToOwned};
+
 use crate::{
     limits::MAX_WASM_FUNCTION_LOCALS, BinaryReaderError, BlockType, BrTable, HeapType, Ieee32,
     Ieee64, MemArg, RefType, Result, ValType, VisitOperator, WasmFeatures, WasmFuncType,
     WasmModuleResources, V128,
 };
-use std::ops::{Deref, DerefMut};
 
 pub(crate) struct OperatorValidator {
     pub(super) locals: Locals,
@@ -164,7 +167,7 @@ enum MaybeType {
 // unit of storage, so assert that it doesn't exceed 4 bytes which is the
 // current expected size.
 const _: () = {
-    assert!(std::mem::size_of::<MaybeType>() == 4);
+    assert!(mem::size_of::<MaybeType>() == 4);
 };
 
 impl From<ValType> for MaybeType {
@@ -191,6 +194,7 @@ impl OperatorValidator {
             locals_first,
             locals_all,
         } = allocs;
+
         debug_assert!(br_table_tmp.is_empty());
         debug_assert!(control.is_empty());
         debug_assert!(operands.is_empty());

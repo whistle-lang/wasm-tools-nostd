@@ -1,3 +1,5 @@
+use alloc::boxed::Box;
+
 use crate::limits::{MAX_WASM_INSTANTIATION_ARGS, MAX_WASM_INSTANTIATION_EXPORTS};
 use crate::{
     BinaryReader, ComponentExport, ComponentExternalKind, Export, FromReader, Result,

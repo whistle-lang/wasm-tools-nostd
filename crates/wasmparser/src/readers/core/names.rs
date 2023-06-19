@@ -13,10 +13,11 @@
  * limitations under the License.
  */
 
+use core::ops::Range;
+
 use crate::{
     BinaryReader, BinaryReaderError, FromReader, Result, SectionLimited, Subsection, Subsections,
 };
-use std::ops::Range;
 
 /// Represents a name map from the names custom section.
 pub type NameMap<'a> = SectionLimited<'a, Naming<'a>>;

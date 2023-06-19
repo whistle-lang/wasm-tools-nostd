@@ -1,5 +1,7 @@
 //! State relating to validating a WebAssembly module.
 //!
+use core::mem;
+
 use super::{
     check_max, combine_type_sizes,
     operators::{ty_to_str, OperatorValidator, OperatorValidatorAllocations},
@@ -13,9 +15,9 @@ use crate::{
     TableInit, TableType, TagType, TypeRef, ValType, VisitOperator, WasmFeatures, WasmFuncType,
     WasmModuleResources,
 };
+use alloc::{format, sync::Arc, vec::Vec, string::{String, ToString}};
+use hashbrown::HashSet;
 use indexmap::IndexMap;
-use std::mem;
-use std::{collections::HashSet, sync::Arc};
 
 // Section order for WebAssembly modules.
 //
@@ -1280,8 +1282,10 @@ const _: () = {
 };
 
 mod arc {
-    use std::ops::Deref;
-    use std::sync::Arc;
+    use core::{mem, ops::Deref};
+
+    use alloc::sync::Arc;
+
 
     enum Inner<T> {
         Owned(T),
@@ -1323,7 +1327,7 @@ mod arc {
                 return;
             }
 
-            let inner = std::mem::replace(&mut self.inner, Inner::Empty);
+            let inner = mem::replace(&mut self.inner, Inner::Empty);
             let x = match inner {
                 Inner::Owned(x) => x,
                 _ => Self::unreachable(),

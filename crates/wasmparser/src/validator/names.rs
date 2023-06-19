@@ -1,12 +1,11 @@
 //! Definitions of name-related helpers and newtypes, primarily for the
 //! component model.
 
+use core::{mem, hash::Hasher, ops::Deref, borrow::Borrow};
+
 use crate::{ComponentExternName, Result};
+use alloc::{string::{String, ToString}, fmt, borrow::ToOwned};
 use semver::Version;
-use std::borrow::Borrow;
-use std::fmt;
-use std::hash::{Hash, Hasher};
-use std::ops::Deref;
 
 /// Represents a kebab string slice used in validation.
 ///
@@ -36,7 +35,7 @@ impl KebabStr {
     pub(crate) fn new_unchecked<'a>(s: impl AsRef<str> + 'a) -> &'a Self {
         // Safety: `KebabStr` is a transparent wrapper around `str`
         // Therefore transmuting `&str` to `&KebabStr` is safe.
-        unsafe { std::mem::transmute::<_, &Self>(s.as_ref()) }
+        unsafe { mem::transmute::<_, &Self>(s.as_ref()) }
     }
 
     /// Gets the underlying string slice.
@@ -46,7 +45,7 @@ impl KebabStr {
 
     /// Converts the slice to an owned string.
     pub fn to_kebab_string(&self) -> KebabString {
-        KebabString(self.to_string())
+        KebabString(self.to_string() )
     }
 
     fn is_kebab_case(&self) -> bool {
@@ -97,7 +96,7 @@ impl PartialEq<KebabString> for KebabStr {
     }
 }
 
-impl Hash for KebabStr {
+impl core::hash::Hash for KebabStr {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.len().hash(state);
 
@@ -183,9 +182,9 @@ impl PartialEq<KebabStr> for KebabString {
     }
 }
 
-impl Hash for KebabString {
+impl core::hash::Hash for KebabString {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        self.as_kebab_str().hash(state)
+        self.as_kebab_str().0.hash(state)
     }
 }
 
@@ -384,7 +383,7 @@ impl From<KebabName> for String {
     }
 }
 
-impl Hash for KebabName {
+impl core::hash::Hash for KebabName {
     fn hash<H: Hasher>(&self, hasher: &mut H) {
         self.kind().hash(hasher)
     }
@@ -410,22 +409,22 @@ impl fmt::Debug for KebabName {
     }
 }
 
-impl Hash for KebabNameKind<'_> {
+impl core::hash::Hash for KebabNameKind<'_> {
     fn hash<H: Hasher>(&self, hasher: &mut H) {
         match self {
             KebabNameKind::Normal(name) => {
                 hasher.write_u8(0);
-                name.hash(hasher);
+                name.0.hash(hasher);
             }
             KebabNameKind::Constructor(name) => {
                 hasher.write_u8(1);
-                name.hash(hasher);
+                name.0.hash(hasher);
             }
             // for hashing method == static
             KebabNameKind::Method { resource, name } | KebabNameKind::Static { resource, name } => {
                 hasher.write_u8(2);
-                resource.hash(hasher);
-                name.hash(hasher);
+                resource.0.hash(hasher);
+                name.0.hash(hasher);
             }
             KebabNameKind::Id {
                 namespace,
@@ -434,9 +433,9 @@ impl Hash for KebabNameKind<'_> {
                 version,
             } => {
                 hasher.write_u8(3);
-                namespace.hash(hasher);
-                package.hash(hasher);
-                interface.hash(hasher);
+                namespace.0.hash(hasher);
+                package.0.hash(hasher);
+                interface.0.hash(hasher);
                 version.hash(hasher);
             }
         }
@@ -520,9 +519,9 @@ impl Eq for KebabNameKind<'_> {}
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use std::collections::HashSet;
+    use hashbrown::HashSet;
 
+    use super::*;
     fn parse_kebab_name(s: &str) -> Option<KebabName> {
         KebabName::new(ComponentExternName::Kebab(s), 0).ok()
     }
