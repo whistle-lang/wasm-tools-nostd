@@ -5,9 +5,9 @@
 
 use core::marker;
 
-use crate::{arbitrary_loop, Config, DefaultConfig};
+use crate::{arbitrary_loop, Config, DefaultConfig,};
 use alloc::{collections::BTreeMap, rc::Rc, string::String, vec::Vec};
-use arbitrary::{Arbitrary, Result, Unstructured};
+use crate::arbitrary::{Arbitrary, Result, Unstructured};
 use hashbrown::{HashMap, HashSet};
 use wasm_encoder::{ComponentTypeRef, ComponentValType, PrimitiveValType, TypeBounds, ValType};
 use wasmparser::names::KebabString;
@@ -305,11 +305,11 @@ impl TypesScope {
     }
 }
 
-impl<'a> Arbitrary<'a> for Component {
-    fn arbitrary(u: &mut Unstructured<'a>) -> Result<Self> {
-        Ok(ConfiguredComponent::<DefaultConfig>::arbitrary(u)?.component)
-    }
-}
+// impl<'a> Arbitrary<'a> for Component {
+//     fn arbitrary(u: &mut Unstructured<'a>) -> Result<Self> {
+//         Ok(ConfiguredComponent::<DefaultConfig>::arbitrary(u)?.component?)
+//     }
+// }
 
 /// A pseudo-random generated Wasm component with custom configuration.
 ///
@@ -1907,13 +1907,14 @@ fn inverse_scalar_canonical_abi_for(
     let results = match core_func_ty.results.len() {
         0 => Vec::new(),
         1 => {
-            let ret = Vec::new();
+            let mut ret = Vec::new();
             ret.push((
-                if u.arbitrary()? {
-                    Some(crate::unique_kebab_string(100, &mut names, u)?)
-                } else {
-                    None
-                },
+                // if u.arbitrary()? {
+                //     Some(crate::unique_kebab_string(100, &mut names, u)?)
+                // } else {
+                //     None
+                // },
+                None,
                 from_core_ty(u, core_func_ty.results[0])?,
             ));
             ret

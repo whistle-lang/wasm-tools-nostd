@@ -1,4 +1,4 @@
-use arbitrary::{Arbitrary, Unstructured};
+use wasm_smith::arbitrary::{Arbitrary, Unstructured};
 use rand::{rngs::SmallRng, RngCore, SeedableRng};
 use wasm_smith::Component;
 

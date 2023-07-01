@@ -2,7 +2,7 @@
 
 use crate::InstructionKinds;
 use alloc::{fmt, borrow::Cow, vec::Vec};
-use arbitrary::{Arbitrary, Result, Unstructured};
+use crate::arbitrary::{Arbitrary, Result, Unstructured};
 
 /// Configuration for a generated module.
 ///
@@ -479,7 +479,7 @@ pub trait Config: 'static + fmt::Debug {
 }
 
 /// The default configuration.
-#[derive(Arbitrary, Debug, Default, Copy, Clone)]
+#[derive(Debug, Default, Copy, Clone)]
 pub struct DefaultConfig;
 
 impl Config for DefaultConfig {}

@@ -1,4 +1,4 @@
-use arbitrary::{Arbitrary, Unstructured};
+use crate::arbitrary::{Arbitrary, Unstructured};
 use rand::{rngs::SmallRng, RngCore, SeedableRng};
 use std::collections::HashMap;
 use wasm_smith::{Config, ConfiguredModule, Module, SwarmConfig};

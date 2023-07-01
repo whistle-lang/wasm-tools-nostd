@@ -54,9 +54,14 @@
 // Needed for the `instructions!` macro in `src/code_builder.rs`.
 #![recursion_limit = "512"]
 #![no_std]
+#![feature(error_in_core)]
+#![feature(ip_in_core)]
 mod component;
 mod config;
 mod core;
+
+#[macro_use]
+pub mod arbitrary;
 
 use ::core::{cmp, fmt::Write};
 extern crate alloc;

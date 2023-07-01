@@ -8,7 +8,7 @@ use core::{marker, result, str::FromStr, ops::Range};
 
 use crate::{arbitrary_loop, limited_string, unique_string, Config, DefaultConfig};
 use alloc::{rc::Rc, vec::Vec, string::{String, ToString}, fmt, boxed::Box, format};
-use arbitrary::{Arbitrary, Result, Unstructured};
+use crate::arbitrary::{Arbitrary, Result, Unstructured};
 use code_builder::CodeBuilderAllocations;
 use flagset::{flags, FlagSet};
 use hashbrown::HashSet;
@@ -119,11 +119,11 @@ pub struct Module {
     type_size: u32,
 }
 
-impl<'a> Arbitrary<'a> for Module {
-    fn arbitrary(u: &mut Unstructured<'a>) -> Result<Self> {
-        Ok(ConfiguredModule::<DefaultConfig>::arbitrary(u)?.module)
-    }
-}
+// impl<'a> Arbitrary<'a> for Module {
+//     fn arbitrary(u: &mut Unstructured<'a>) -> Result<Self> {
+//         Ok(ConfiguredModule::<DefaultConfig>::arbitrary(u)?.module)
+//     }
+// }
 
 /// A pseudo-random generated WebAssembly file with custom configuration.
 ///
@@ -198,14 +198,14 @@ impl Module {
     }
 }
 
-impl<'a, C: Config + Arbitrary<'a>> Arbitrary<'a> for ConfiguredModule<C> {
-    fn arbitrary(u: &mut Unstructured<'a>) -> Result<Self> {
-        Ok(ConfiguredModule {
-            module: Module::new(C::arbitrary(u)?, u)?,
-            _marker: marker::PhantomData,
-        })
-    }
-}
+// impl<'a, C: Config + Arbitrary<'a>> Arbitrary<'a> for ConfiguredModule<C> {
+//     fn arbitrary(u: &mut Unstructured<'a>) -> Result<Self> {
+//         Ok(ConfiguredModule {
+//             module: Module::new(C::arbitrary(u)?, u)?,
+//             _marker: marker::PhantomData,
+//         })
+//     }
+// }
 
 /// Same as [`Module`], but may be invalid.
 ///
@@ -994,7 +994,7 @@ impl Module {
             // If our addition of exports takes us above the allowed number of
             // types, we fail; this error code is not the most illustrative of
             // the cause but is the best available from `arbitrary`.
-            Err(arbitrary::Error::IncorrectFormat)
+            Err(crate::arbitrary::Error::IncorrectFormat)
         }
     }
 

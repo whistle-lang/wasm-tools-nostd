@@ -3,7 +3,7 @@ use super::{
     ValType,
 };
 use alloc::{vec::Vec, collections::{BTreeMap, BTreeSet}, rc::Rc, boxed::Box};
-use arbitrary::{Result, Unstructured};
+use crate::arbitrary::{Result, Unstructured};
 use wasm_encoder::{BlockType, MemArg, RefType};
 mod no_traps;
 
